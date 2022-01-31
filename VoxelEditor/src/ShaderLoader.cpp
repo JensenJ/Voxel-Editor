@@ -54,7 +54,7 @@ unsigned int ShaderLoader::CreateShader(const char* filePath, unsigned int shade
 }
 
 //Create a shader program using a vertex shader and fragment shader
-unsigned int ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int fragmentShader)
+Shader ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int fragmentShader)
 {
 	unsigned int shaderProgram;
 	shaderProgram = glCreateProgram();
@@ -75,14 +75,46 @@ unsigned int ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsign
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	return shaderProgram;
+	return Shader(shaderProgram);
 }
 
 //Create a shader program from a vertex and fragment shader file path
-unsigned int ShaderLoader::CreateShaderProgram(const char* vertexPath, const char* fragmentPath)
+Shader ShaderLoader::CreateShaderProgram(const char* vertexPath, const char* fragmentPath)
 {
 	unsigned int vertexShader = CreateShader(vertexPath, GL_VERTEX_SHADER);
 	unsigned int fragmentShader = CreateShader(fragmentPath, GL_FRAGMENT_SHADER);
 
 	return CreateShaderProgram(vertexShader, fragmentShader);
+}
+
+//SHADER CLASS
+
+Shader::Shader(unsigned int ID)
+{
+	programID = ID;
+}
+
+void Shader::Use()
+{
+	glUseProgram(programID);
+}
+
+void Shader::Delete()
+{
+	glDeleteProgram(programID);
+}
+
+void Shader::SetBool(const std::string& name, bool value) const
+{
+	glUniform1i(glGetUniformLocation(programID, name.c_str()), (int)value);
+}
+
+void Shader::SetInt(const std::string& name, int value) const
+{
+	glUniform1i(glGetUniformLocation(programID, name.c_str()), value);
+}
+
+void Shader::SetFloat(const std::string& name, float value) const
+{
+	glUniform1f(glGetUniformLocation(programID, name.c_str()), value);
 }
