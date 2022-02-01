@@ -21,7 +21,13 @@
     <ClCompile Include="src\glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\ShaderLoader.cpp">
+    <ClCompile Include="src\Rendering\ShaderLoader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\RawModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rendering\EntityRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -30,7 +36,13 @@
     <Text Include="src\fragmentShader.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ShaderLoader.h">
+    <ClInclude Include="src\Rendering\ShaderLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\RawModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\EntityRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

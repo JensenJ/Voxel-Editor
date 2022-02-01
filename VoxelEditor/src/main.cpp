@@ -1,21 +1,25 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <vector>
 #include <filesystem>
-#include "ShaderLoader.h"
+#include "Rendering/ShaderLoader.h"
+#include "Rendering/RawModel.h"
+#include "Rendering/EntityRenderer.h"
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+GLFWwindow* InitialiseOpenGL();
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
 	glViewport(0, 0, width, height);
 }
 
-int main()
+GLFWwindow* InitialiseOpenGL()
 {
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "Voxel Editor", NULL, NULL);
@@ -23,7 +27,7 @@ int main()
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
 		glfwTerminate();
-		return -1;
+		return nullptr;
 	}
 	glfwMakeContextCurrent(window);
 
@@ -31,53 +35,58 @@ int main()
 	{
 		std::cout << "Failed to initialise GLAD" << std::endl;
 		glfwTerminate();
-		return -1;
+		return nullptr;
 	}
 
 	glViewport(0, 0, 800, 600);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	return window;
+}
+
+int main()
+{
+	//Create OpenGL window
+	GLFWwindow* window = InitialiseOpenGL();
+	if (window == nullptr) { return -1; }
 	std::cout << "Created Window" << std::endl;
 	
 	//Load shaders
+	bool success = false;
 	std::string vertexPath = std::filesystem::current_path().string() + "\\src\\vertexShader.txt";
 	std::string fragmentPath = std::filesystem::current_path().string() + "\\src\\fragmentShader.txt";
-	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str());
+	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), success);
 
+	//If shader compilation/linking failed
+	if (!success)
+	{
+		std::cout << "Failed to create shaders" << std::endl;
+		glfwTerminate();
+		return -2;
+	}
 	std::cout << "Created Shaders" << std::endl;
 
-	float vertices[] = {
-	 0.5f,  0.5f, 0.0f,  1.0f, 0.0f, 0.0f, // top right
-	 0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f,// bottom right
-	-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,// bottom left
-	-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 1.0f// top left 
+
+	Vertex vertexArray[] = {
+		//Positions									//Colours
+		{glm::vec<3, double>(0.5,  0.5, 0.0),		glm::vec3(1.0f, 0.0f, 0.0f)},
+		{glm::vec<3, double>(0.5, -0.5, 0.0),		glm::vec3(0.0f, 1.0f, 0.0f)},
+		{glm::vec<3, double>(-0.5, -0.5, 0.0),		glm::vec3(0.0f, 0.0f, 1.0f)},
+		{glm::vec<3, double>(-0.5,  0.5, 0.0),		glm::vec3(1.0f, 1.0f, 1.0f)},
 	};
 
 	unsigned int indices[] = {
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
+	0, 1, 3,   // first triangle
+	1, 2, 3    // second triangle
 	};
 
-	unsigned int VBO, VAO, EBO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	std::vector<Vertex> verticesVector(std::begin(vertexArray), std::end(vertexArray));
+	std::vector<unsigned int> indicesVector(std::begin(indices), std::end(indices));
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-	glEnableVertexAttribArray(1);
-
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+	RawModel testModel = RawModel(verticesVector, indicesVector);
+	EntityRenderer renderer = EntityRenderer();
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -87,23 +96,26 @@ int main()
 			glfwSetWindowShouldClose(window, true);
 		}
 
+		//Wireframe toggle
+		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
 		//Rendering
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		//Draw triangle
 		shaderProgram.Use();
-		glBindVertexArray(VAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		renderer.Render(testModel);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO);
-	glDeleteBuffers(1, &EBO);
 	shaderProgram.Delete();
+	testModel.DeleteModel();
 
 	std::cout << "Exiting" << std::endl;
 

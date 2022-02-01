@@ -48,7 +48,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLAD\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\includes;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLM;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLAD\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\includes;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -82,7 +82,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\ShaderLoader.cpp" />
+    <ClCompile Include="src\Rendering\EntityRenderer.cpp" />
+    <ClCompile Include="src\Rendering\RawModel.cpp" />
+    <ClCompile Include="src\Rendering\ShaderLoader.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
@@ -91,7 +93,9 @@
     <Text Include="src\vertexShader.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ShaderLoader.h" />
+    <ClInclude Include="src\Rendering\EntityRenderer.h" />
+    <ClInclude Include="src\Rendering\RawModel.h" />
+    <ClInclude Include="src\Rendering\ShaderLoader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -54,7 +54,7 @@ unsigned int ShaderLoader::CreateShader(const char* filePath, unsigned int shade
 }
 
 //Create a shader program using a vertex shader and fragment shader
-Shader ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int fragmentShader)
+Shader ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int fragmentShader, bool& outSuccess)
 {
 	unsigned int shaderProgram;
 	shaderProgram = glCreateProgram();
@@ -63,6 +63,7 @@ Shader ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
 
+	outSuccess = true;
 	int success;
 	char infoLog[512];
 	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
@@ -70,6 +71,7 @@ Shader ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int
 	{
 		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
 		std::cout << "Error: Shader linking failed \n" << infoLog << std::endl;
+		outSuccess = false;
 	}
 
 	glDeleteShader(vertexShader);
@@ -79,12 +81,12 @@ Shader ShaderLoader::CreateShaderProgram(unsigned int vertexShader, unsigned int
 }
 
 //Create a shader program from a vertex and fragment shader file path
-Shader ShaderLoader::CreateShaderProgram(const char* vertexPath, const char* fragmentPath)
+Shader ShaderLoader::CreateShaderProgram(const char* vertexPath, const char* fragmentPath, bool& outSuccess)
 {
 	unsigned int vertexShader = CreateShader(vertexPath, GL_VERTEX_SHADER);
 	unsigned int fragmentShader = CreateShader(fragmentPath, GL_FRAGMENT_SHADER);
 
-	return CreateShaderProgram(vertexShader, fragmentShader);
+	return CreateShaderProgram(vertexShader, fragmentShader, outSuccess);
 }
 
 //SHADER CLASS
