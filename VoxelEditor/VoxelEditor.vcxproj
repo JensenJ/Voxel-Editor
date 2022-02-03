@@ -82,20 +82,28 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Entity\EntityRegistry.cpp" />
+    <ClCompile Include="src\Entity\Components\Component.cpp" />
+    <ClCompile Include="src\Entity\Entity.cpp" />
     <ClCompile Include="src\Rendering\EntityRenderer.cpp" />
     <ClCompile Include="src\Rendering\RawModel.cpp" />
     <ClCompile Include="src\Rendering\ShaderLoader.cpp" />
     <ClCompile Include="src\glad.c" />
     <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Entity\Components\TransformComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\fragmentShader.txt" />
     <Text Include="src\vertexShader.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Entity\EntityRegistry.h" />
+    <ClInclude Include="src\Entity\Components\Component.h" />
+    <ClInclude Include="src\Entity\Entity.h" />
     <ClInclude Include="src\Rendering\EntityRenderer.h" />
     <ClInclude Include="src\Rendering\RawModel.h" />
     <ClInclude Include="src\Rendering\ShaderLoader.h" />
+    <ClInclude Include="src\Entity\Components\TransformComponent.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

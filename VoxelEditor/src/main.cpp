@@ -9,6 +9,9 @@
 #include "Rendering/ShaderLoader.h"
 #include "Rendering/RawModel.h"
 #include "Rendering/EntityRenderer.h"
+#include "Entity/Entity.h"
+#include "Entity/Components/TransformComponent.h"
+#include "Entity/EntityRegistry.h"
 
 int screenWidth = 1920;
 int screenHeight = 1080;
@@ -104,15 +107,15 @@ int main()
 	//Random cube position
 	glm::vec3 cubePositions[] = {
 		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(2.0f, 5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
 		glm::vec3(-3.8f, -2.0f, -12.3f),
 		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(-1.7f, 3.0f, -7.5f),
 		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
+		glm::vec3(1.5f, 2.0f, -2.5f),
+		glm::vec3(1.5f, 0.2f, -1.5f),
+		glm::vec3(-1.3f, 1.0f, -1.5f)
 	};
 
 	std::vector<Vertex> verticesVector(std::begin(vertexArray), std::end(vertexArray));
@@ -120,8 +123,13 @@ int main()
 
 	RawModel testModel = RawModel(verticesVector, indicesVector);
 	EntityRenderer renderer = EntityRenderer();
+	EntityRegistry entityRegistry = EntityRegistry();
 
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	Entity testEntity = entityRegistry.CreateEntity();
+	testEntity.AddComponent<TransformComponent>();
+
+	std::vector<TransformComponent*> allTransforms = entityRegistry.GetAllComponentsOfType<TransformComponent>();
+
 	glEnable(GL_DEPTH_TEST);
 
 	while (!glfwWindowShouldClose(window))
@@ -168,6 +176,7 @@ int main()
 
 	shaderProgram.Delete();
 	testModel.DeleteModel();
+	entityRegistry.Cleanup();
 
 	std::cout << "Exiting" << std::endl;
 
