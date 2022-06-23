@@ -48,7 +48,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLM;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLAD\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\includes;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\Entt\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLM;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLAD\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\includes;$(IncludePath)</IncludePath>
     <LibraryPath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -82,9 +82,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\Entity\EntityRegistry.cpp" />
+    <ClCompile Include="src\Entity\Components\MeshRendererComponent.cpp" />
     <ClCompile Include="src\Entity\Components\Component.cpp" />
     <ClCompile Include="src\Entity\Entity.cpp" />
+    <ClCompile Include="src\Entity\EntityRegistry.cpp" />
     <ClCompile Include="src\Rendering\EntityRenderer.cpp" />
     <ClCompile Include="src\Rendering\RawModel.cpp" />
     <ClCompile Include="src\Rendering\ShaderLoader.cpp" />
@@ -97,9 +98,10 @@
     <Text Include="src\vertexShader.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Entity\EntityRegistry.h" />
+    <ClInclude Include="src\Entity\Components\MeshRendererComponent.h" />
     <ClInclude Include="src\Entity\Components\Component.h" />
     <ClInclude Include="src\Entity\Entity.h" />
+    <ClInclude Include="src\Entity\EntityRegistry.h" />
     <ClInclude Include="src\Rendering\EntityRenderer.h" />
     <ClInclude Include="src\Rendering\RawModel.h" />
     <ClInclude Include="src\Rendering\ShaderLoader.h" />

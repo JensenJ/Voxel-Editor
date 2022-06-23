@@ -12,8 +12,8 @@ public:
 
 	unsigned int GetEntityID() { return entityID; }
 
-	template<typename T>
-	Component* AddComponent()
+	template<typename T, class... Args>
+	T* AddComponent(Args... args)
 	{
 		//Check if type is a subclass of component
 		static_assert(!std::is_same<Component, T>::value, "Added component must be subclass of Component");
@@ -24,7 +24,7 @@ public:
 		if (hasComp != nullptr) { return hasComp; }
 
 		//Otherwise create new one in registry
-		Component* comp = eRegistry->AddComponentOfTypeToRegistry<T>(GetEntityID());
+		T* comp = static_cast<T*>(eRegistry->AddComponentOfTypeToRegistry<T>(entityID, args...));
 
 		//Add to local copy of components
 		components.push_back(comp);
@@ -44,7 +44,7 @@ public:
 		{
 			if (typeid(*components[i]).name() == typeid(T).name())
 			{
-				return components[i];
+				return static_cast<T*>(components[i]);
 			}
 		}
 

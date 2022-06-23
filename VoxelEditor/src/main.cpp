@@ -11,6 +11,7 @@
 #include "Rendering/EntityRenderer.h"
 #include "Entity/Entity.h"
 #include "Entity/Components/TransformComponent.h"
+#include "Entity/Components/MeshRendererComponent.h"
 #include "Entity/EntityRegistry.h"
 
 int screenWidth = 1920;
@@ -104,20 +105,6 @@ int main()
 	5, 1, 2,   // second triangle - back bottom right, front bottom right, front bottom left
 	};
 
-	//Random cube position
-	glm::vec3 cubePositions[] = {
-		glm::vec3(0.0f, 0.0f, 0.0f),
-		glm::vec3(2.0f, 5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f, 3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f, 2.0f, -2.5f),
-		glm::vec3(1.5f, 0.2f, -1.5f),
-		glm::vec3(-1.3f, 1.0f, -1.5f)
-	};
-
 	std::vector<Vertex> verticesVector(std::begin(vertexArray), std::end(vertexArray));
 	std::vector<unsigned int> indicesVector(std::begin(indices), std::end(indices));
 
@@ -125,15 +112,39 @@ int main()
 	EntityRenderer renderer = EntityRenderer();
 	EntityRegistry entityRegistry = EntityRegistry();
 
-	Entity testEntity = entityRegistry.CreateEntity();
-	testEntity.AddComponent<TransformComponent>();
-
+	//Create entities
+	for (int i = 0; i < 300; i++)
+	{
+		Entity* entity = entityRegistry.CreateEntity();
+		entity->AddComponent<TransformComponent>(glm::vec3((rand() % 20) - 10, (rand() % 20) - 10, -rand() % 50));
+		entity->AddComponent<MeshRendererComponent>(&testModel);
+	}
+	
 	std::vector<TransformComponent*> allTransforms = entityRegistry.GetAllComponentsOfType<TransformComponent>();
+	std::vector<MeshRendererComponent*> allMeshRenderers = entityRegistry.GetAllComponentsOfType<MeshRendererComponent>();
 
 	glEnable(GL_DEPTH_TEST);
 
+	double lastTime = glfwGetTime();
+	int nbFrames = 0;
+
 	while (!glfwWindowShouldClose(window))
 	{
+		double currentTime = glfwGetTime();
+		nbFrames++;
+		if (currentTime - lastTime >= 1.0)
+		{
+			std::string title = "Voxel Editor [";
+			title += std::to_string(nbFrames);
+			title += " FPS, ";
+			title += std::to_string(1000.0 / double(nbFrames));
+			title += " ms]";
+			glfwSetWindowTitle(window, title.c_str());
+
+			nbFrames = 0;
+			lastTime += 1.0;
+		}
+
 		//Input
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		{
@@ -159,15 +170,31 @@ int main()
 		shaderProgram.SetMat4("projection", projection);
 
 		shaderProgram.Use();
-		for (unsigned int i = 0; i < 10; i++)
+
+		for (unsigned int i = 0; i < allMeshRenderers.size(); i++)
 		{
 			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, cubePositions[i]);
-			float angle = 20.0f * (i + 1);
-			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(0.5f, 0.3f, 0.5f));
-			shaderProgram.SetMat4("model", model);
+			Entity* entity = entityRegistry.GetEntityFromID(allMeshRenderers[i]->GetOwningEntityID());
+			if (entity == nullptr) 
+			{ 
+				std::cout << "Entity had invalid id" << std::endl;
+				continue; 
+			}
 
-			renderer.Render(testModel);
+			TransformComponent* transform = entity->GetComponent<TransformComponent>();
+			if (transform == nullptr) 
+			{ 
+				std::cout << "Entity has invalid transform" << std::endl;
+				continue;
+			}
+
+			//transform->AddPosition(glm::vec3(0.25f,0,0));
+			transform->SetRotation(glm::vec3((float)glfwGetTime() * glm::radians((float)20 * (i + 1)) * glm::vec3(0.5f, 0.3f, 0.7f)));
+
+			model = transform->GetTransform();
+			shaderProgram.SetMat4("model", model);
+			
+			renderer.Render(*allMeshRenderers[i]->GetMesh());
 		}
 
 		glfwSwapBuffers(window);

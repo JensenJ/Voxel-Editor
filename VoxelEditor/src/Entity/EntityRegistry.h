@@ -21,7 +21,7 @@ public:
 	std::map<Component*, std::vector<Component*>> componentRegistry;
 
 public:
-	class Entity CreateEntity();
+	class Entity* CreateEntity();
 
 	void Cleanup();
 
@@ -65,11 +65,11 @@ public:
 		return std::vector<T*>();
 	}
 
-	template<typename T>
-	Component* AddComponentOfTypeToRegistry(unsigned int entity)
+	template<typename T, class... Args>
+	Component* AddComponentOfTypeToRegistry(unsigned int entity, Args... args)
 	{
 		//Create a component of type T
-		Component* comp = static_cast<Component*>(new T());
+		Component* comp = static_cast<Component*>(new T(args...));
 		comp->SetOwningEntityID(entity);
 
 		//For every type of component
@@ -91,8 +91,9 @@ public:
 		return comp;
 	}
 
+	class Entity* GetEntityFromID(unsigned int id);
 
 private:
 	unsigned int entityCount = 0;
+	std::map<unsigned int, class Entity*> entities;
 };
-
