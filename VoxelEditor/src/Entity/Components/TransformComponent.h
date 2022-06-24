@@ -18,10 +18,12 @@ public:
 	
 	void SetPosition(glm::vec3 newPos);
 	void SetRotation(glm::vec3 newRot);
+	void SetRotation(float newRotation, glm::vec3 axis);
 	void SetScale(glm::vec3 newScale);
 
 	void AddPosition(glm::vec3 addedPosition);
 	void AddRotation(glm::vec3 addedRotation);
+	void AddRotation(float newRotation, glm::vec3 axis);
 
 private:
 	glm::mat4 transform = glm::mat4(1.0f);

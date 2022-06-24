@@ -63,6 +63,12 @@ void TransformComponent::SetRotation(glm::vec3 newRotation)
 	rotationEuler = newRotation;
 }
 
+void TransformComponent::SetRotation(float newRotation, glm::vec3 axis)
+{
+	transform = glm::rotate(transform, newRotation, axis);
+	rotationEuler = newRotation * axis;
+}
+
 void TransformComponent::AddRotation(glm::vec3 addedRotation)
 {
 	SetRotation(GetRotation() + addedRotation);

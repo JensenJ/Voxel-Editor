@@ -12,13 +12,25 @@
 #include "Entity/Entity.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Components/MeshRendererComponent.h"
+#include "Entity/Components/CameraComponent.h"
 #include "Entity/EntityRegistry.h"
 
 int screenWidth = 1920;
 int screenHeight = 1080;
 
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
+
+Entity* camera;
+float lastMouseX = screenWidth / 2.0f;
+float lastMouseY = screenHeight / 2.0f;
+bool firstMouse = true;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 GLFWwindow* InitialiseOpenGL();
+void ProcessInput(GLFWwindow* window, float deltaTime);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -33,6 +45,7 @@ GLFWwindow* InitialiseOpenGL()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
 	if (window == NULL)
@@ -52,6 +65,9 @@ GLFWwindow* InitialiseOpenGL()
 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	return window;
 }
 
@@ -91,17 +107,17 @@ int main()
 	};
 
 	unsigned int indices[] = {
-	0, 1, 3,   // first triangle - front top right, front bottom right, front top left
-	1, 2, 3,   // second triangle - front bottom right, front bottom left, front top left
+	3, 1, 0,   // first triangle - front top right, front bottom right, front top left
+	3, 2, 1,   // second triangle - front bottom right, front bottom left, front top left
 	4, 5, 7,   // first triangle - back top right, back bottom right, back top left
 	5, 6, 7,   // second triangle - back bottom right, back bottom left, back top left
 	0, 5, 4,   // first triangle - front top right, back bottom right, back top right
 	1, 5, 0,   // second triangle - front bottom right, back bottom right, front top right
-	3, 6, 7,   // first triangle - front top left, back bottom left, back top left
-	2, 6, 3,   // second triangle - front bottom left, back bottom left, front top left
+	7, 6, 3,   // first triangle - front top left, back bottom left, back top left
+	3, 6, 2,   // second triangle - front bottom left, back bottom left, front top left
 	7, 3, 4,   // first triangle - back top left, front top left, back top right
-	4, 0, 3,   // second triangle - back top right, front top right, front top left
-	6, 2, 5,   // first triangle - back bottom left, front bottom left, back bottom right
+	3, 0, 4,   // second triangle - back top right, front top right, front top left
+	5, 2, 6,   // first triangle - back bottom left, front bottom left, back bottom right
 	5, 1, 2,   // second triangle - back bottom right, front bottom right, front bottom left
 	};
 
@@ -112,24 +128,48 @@ int main()
 	EntityRenderer renderer = EntityRenderer();
 	EntityRegistry entityRegistry = EntityRegistry();
 
+	//Camera settings
+	const float YAW = -90.0f;
+	const float PITCH = 0.0f;
+	const float MOVEMENTSPEED = 5.0f;
+	const float SENSITIVITY = 0.1f;
+	const float ZOOM = 45.0f;
+
+	camera = entityRegistry.CreateEntity();
+	camera->AddComponent<CameraComponent>(glm::vec3(0.0f, 0.0f, 0.0f), YAW, PITCH, MOVEMENTSPEED, SENSITIVITY, ZOOM);
+
 	//Create entities
-	for (int i = 0; i < 300; i++)
+	for (int x = 0; x < 30; x++)
 	{
-		Entity* entity = entityRegistry.CreateEntity();
-		entity->AddComponent<TransformComponent>(glm::vec3((rand() % 20) - 10, (rand() % 20) - 10, -rand() % 50));
-		entity->AddComponent<MeshRendererComponent>(&testModel);
+		for (int y = 0; y < 20; y++)
+		{
+			for (int z = 0; z < 100; z++)
+			{
+				Entity* entity = entityRegistry.CreateEntity();
+				entity->AddComponent<TransformComponent>(glm::vec3(x, y, z));
+				entity->AddComponent<MeshRendererComponent>(&testModel);
+			}
+		}
 	}
 	
 	std::vector<TransformComponent*> allTransforms = entityRegistry.GetAllComponentsOfType<TransformComponent>();
 	std::vector<MeshRendererComponent*> allMeshRenderers = entityRegistry.GetAllComponentsOfType<MeshRendererComponent>();
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glEnable(GL_MULTISAMPLE);
 
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
 
 	while (!glfwWindowShouldClose(window))
 	{
+		//Calculate delta time
+		float currentFrame = static_cast<float>(glfwGetTime());
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		//Calculate FPS
 		double currentTime = glfwGetTime();
 		nbFrames++;
 		if (currentTime - lastTime >= 1.0)
@@ -145,26 +185,16 @@ int main()
 			lastTime += 1.0;
 		}
 
-		//Input
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		{
-			glfwSetWindowShouldClose(window, true);
-		}
-
-		//Wireframe toggle
-		if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		ProcessInput(window, deltaTime);
 
 		//Rendering
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glm::mat4 view = glm::mat4(1.0f);
-		glm::mat4 projection = glm::mat4(1.0f);
-		view = glm::translate(view, glm::vec3(0.0f, 0.05f, -3.0f));
-		projection = glm::perspective(glm::radians(45.0f), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
+		CameraComponent* camComponent = camera->GetComponent<CameraComponent>();
+		if (camera == nullptr) { return -3; };
+		glm::mat4 view = camComponent->GetViewMatrix();
+		glm::mat4 projection = glm::perspective(glm::radians(camComponent->GetZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
 		shaderProgram.SetMat4("view", view);
 		shaderProgram.SetMat4("projection", projection);
@@ -173,7 +203,6 @@ int main()
 
 		for (unsigned int i = 0; i < allMeshRenderers.size(); i++)
 		{
-			glm::mat4 model = glm::mat4(1.0f);
 			Entity* entity = entityRegistry.GetEntityFromID(allMeshRenderers[i]->GetOwningEntityID());
 			if (entity == nullptr) 
 			{ 
@@ -188,10 +217,7 @@ int main()
 				continue;
 			}
 
-			//transform->AddPosition(glm::vec3(0.25f,0,0));
-			transform->SetRotation(glm::vec3((float)glfwGetTime() * glm::radians((float)20 * (i + 1)) * glm::vec3(0.5f, 0.3f, 0.7f)));
-
-			model = transform->GetTransform();
+			glm::mat4 model = transform->GetTransform();
 			shaderProgram.SetMat4("model", model);
 			
 			renderer.Render(*allMeshRenderers[i]->GetMesh());
@@ -209,4 +235,56 @@ int main()
 
 	glfwTerminate();
 	return 0;
+}
+
+void ProcessInput(GLFWwindow* window, float deltaTime)
+{
+	//Input
+	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+	{
+		glfwSetWindowShouldClose(window, true);
+	}
+
+	//Wireframe toggle
+	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+	//Camera controls
+	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
+	if (camComp == nullptr) {return; }
+
+	camComp->ProcessInput(window, deltaTime);
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+	float xpos = static_cast<float>(xposIn);
+	float ypos = static_cast<float>(yposIn);
+
+	if (firstMouse)
+	{
+		lastMouseX = xpos;
+		lastMouseY = ypos;
+		firstMouse = false;
+	}
+
+	float xoffset = xpos - lastMouseX;
+	float yoffset = lastMouseY - ypos; // reversed since y-coordinates go from bottom to top
+
+	lastMouseX = xpos;
+	lastMouseY = ypos;
+
+	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
+	if (camComp == nullptr) { return; }
+	camComp->ProcessMouseMovement(xoffset, yoffset);
+}
+
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
+	if (camComp == nullptr) { return; }
+	camComp->ProcessMouseScroll(static_cast<float>(yoffset));
 }
