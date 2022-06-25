@@ -3,6 +3,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "ImGui/imgui.h"
+#include "ImGui/imgui_impl_glfw.h"
+#include "ImGui/imgui_impl_opengl3.h"
 #include <iostream>
 #include <vector>
 #include <filesystem>
@@ -21,6 +24,10 @@ int screenHeight = 1080;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+bool mouseLocked = true;
+
+const char* glsl_version = "#version 410";
+
 Entity* camera;
 float lastMouseX = screenWidth / 2.0f;
 float lastMouseY = screenHeight / 2.0f;
@@ -31,6 +38,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 GLFWwindow* InitialiseOpenGL();
 void ProcessInput(GLFWwindow* window, float deltaTime);
+void InitialiseImGui(GLFWwindow* window);
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -71,6 +79,35 @@ GLFWwindow* InitialiseOpenGL()
 	return window;
 }
 
+void InitialiseImGui(GLFWwindow* window)
+{
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
+	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
+	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+	//io.ConfigViewportsNoAutoMerge = true;
+	//io.ConfigViewportsNoTaskBarIcon = true;
+
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+	//ImGui::StyleColorsClassic();
+
+	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
+	ImGuiStyle& style = ImGui::GetStyle();
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		style.WindowRounding = 0.0f;
+		style.Colors[ImGuiCol_WindowBg].w = 1.0f;
+	}
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
 int main()
 {
 	//Create OpenGL window
@@ -78,6 +115,9 @@ int main()
 	if (window == nullptr) { return -1; }
 	std::cout << "Created Window" << std::endl;
 	
+	//Initialise window
+	InitialiseImGui(window);
+
 	//Load shaders
 	bool success = false;
 	std::string vertexPath = std::filesystem::current_path().string() + "\\src\\vertexShader.txt";
@@ -185,6 +225,11 @@ int main()
 			lastTime += 1.0;
 		}
 
+		glfwPollEvents();
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
+
 		ProcessInput(window, deltaTime);
 
 		//Rendering
@@ -192,7 +237,11 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		CameraComponent* camComponent = camera->GetComponent<CameraComponent>();
-		if (camera == nullptr) { return -3; };
+		if (camera == nullptr) { 
+			glfwTerminate();
+			std::cout << "Failed to get camera component" << std::endl;
+			return -3; 
+		};
 		glm::mat4 view = camComponent->GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camComponent->GetZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
@@ -223,8 +272,28 @@ int main()
 			renderer.Render(*allMeshRenderers[i]->GetMesh());
 		}
 
+		//float f = 0.5f;
+
+		ImGui::ShowDemoWindow();
+
+		//ImGui::Text("Testing ImGui");
+		//ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+
+		//Render UI
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+		//Render other viewports
+		ImGuiIO& io = ImGui::GetIO(); (void)io;
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
+
 		glfwSwapBuffers(window);
-		glfwPollEvents();
 	}
 
 	shaderProgram.Delete();
@@ -233,6 +302,12 @@ int main()
 
 	std::cout << "Exiting" << std::endl;
 
+	//Clear ImGui
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
+
+	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
 }
@@ -243,6 +318,21 @@ void ProcessInput(GLFWwindow* window, float deltaTime)
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
+	}
+
+	//TODO: Redo with new input manager to prevent it being registered multiple times
+	if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
+	{
+		if (mouseLocked)
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			mouseLocked = false;
+		}
+		else
+		{
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			mouseLocked = true;
+		}
 	}
 
 	//Wireframe toggle
@@ -276,9 +366,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	lastMouseX = xpos;
 	lastMouseY = ypos;
 
-	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
-	if (camComp == nullptr) { return; }
-	camComp->ProcessMouseMovement(xoffset, yoffset);
+	//Only process the mouse moving if the mouse is locked to the viewport
+	if (mouseLocked == true)
+	{
+		CameraComponent* camComp = camera->GetComponent<CameraComponent>();
+		if (camComp == nullptr) { return; }
+		camComp->ProcessMouseMovement(xoffset, yoffset);
+	}
 }
 
 

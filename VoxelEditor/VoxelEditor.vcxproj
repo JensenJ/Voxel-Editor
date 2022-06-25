@@ -48,8 +48,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\Entt\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLM;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLAD\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\includes;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLM;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLAD\includes;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\includes;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Users\jense\Documents\Visual Studio Projects\Libraries\ImGui;C:\Users\jense\Documents\Visual Studio Projects\Libraries\GLFW\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -87,6 +87,13 @@
     <ClCompile Include="src\Entity\Components\Component.cpp" />
     <ClCompile Include="src\Entity\Entity.cpp" />
     <ClCompile Include="src\Entity\EntityRegistry.cpp" />
+    <ClCompile Include="src\ImGui\imgui.cpp" />
+    <ClCompile Include="src\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="src\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="src\ImGui\imgui_impl_glfw.cpp" />
+    <ClCompile Include="src\ImGui\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="src\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="src\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="src\Rendering\EntityRenderer.cpp" />
     <ClCompile Include="src\Rendering\RawModel.cpp" />
     <ClCompile Include="src\Rendering\ShaderLoader.cpp" />
@@ -104,6 +111,15 @@
     <ClInclude Include="src\Entity\Components\Component.h" />
     <ClInclude Include="src\Entity\Entity.h" />
     <ClInclude Include="src\Entity\EntityRegistry.h" />
+    <ClInclude Include="src\ImGui\imconfig.h" />
+    <ClInclude Include="src\ImGui\imgui.h" />
+    <ClInclude Include="src\ImGui\imgui_impl_glfw.h" />
+    <ClInclude Include="src\ImGui\imgui_impl_opengl3.h" />
+    <ClInclude Include="src\ImGui\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="src\ImGui\imgui_internal.h" />
+    <ClInclude Include="src\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="src\ImGui\imstb_textedit.h" />
+    <ClInclude Include="src\ImGui\imstb_truetype.h" />
     <ClInclude Include="src\Rendering\EntityRenderer.h" />
     <ClInclude Include="src\Rendering\RawModel.h" />
     <ClInclude Include="src\Rendering\ShaderLoader.h" />
