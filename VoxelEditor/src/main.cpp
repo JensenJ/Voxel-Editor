@@ -1,3 +1,4 @@
+#pragma once
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -17,6 +18,7 @@
 #include "Entity/Components/MeshRendererComponent.h"
 #include "Entity/Components/CameraComponent.h"
 #include "Entity/EntityRegistry.h"
+#include "InputManager.h"
 
 int screenWidth = 1920;
 int screenHeight = 1080;
@@ -25,6 +27,7 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 bool mouseLocked = true;
+bool wireframeMode = false;
 
 const char* glsl_version = "#version 410";
 
@@ -33,12 +36,21 @@ float lastMouseX = screenWidth / 2.0f;
 float lastMouseY = screenHeight / 2.0f;
 bool firstMouse = true;
 
+InputManager inputManager;
+
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 GLFWwindow* InitialiseOpenGL();
 void ProcessInput(GLFWwindow* window, float deltaTime);
 void InitialiseImGui(GLFWwindow* window);
+
+GLFWwindow* window;
+
+void ToggleMouseCursor();
+void ToggleWireframeMode();
+void CloseWindow();
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
@@ -55,7 +67,7 @@ GLFWwindow* InitialiseOpenGL()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
-	GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
+	window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
 	if (window == NULL)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -75,6 +87,7 @@ GLFWwindow* InitialiseOpenGL()
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetKeyCallback(window, key_callback);
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	return window;
 }
@@ -106,6 +119,11 @@ void InitialiseImGui(GLFWwindow* window)
 	// Setup Platform/Renderer backends
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init(glsl_version);
+}
+
+GLFWwindow* GetWindow()
+{
+	return nullptr;
 }
 
 int main()
@@ -167,6 +185,12 @@ int main()
 	RawModel testModel = RawModel(verticesVector, indicesVector);
 	EntityRenderer renderer = EntityRenderer();
 	EntityRegistry entityRegistry = EntityRegistry();
+
+	//Basic Input binding
+	inputManager = InputManager();
+	inputManager.BindNewKey(GLFW_KEY_0, GLFW_PRESS, 0, ToggleMouseCursor);
+	inputManager.BindNewKey(GLFW_KEY_9, GLFW_PRESS, 0, ToggleWireframeMode);
+	inputManager.BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
 
 	//Camera settings
 	const float YAW = -90.0f;
@@ -296,6 +320,7 @@ int main()
 		glfwSwapBuffers(window);
 	}
 
+	inputManager.Cleanup();
 	shaderProgram.Delete();
 	testModel.DeleteModel();
 	entityRegistry.Cleanup();
@@ -314,33 +339,6 @@ int main()
 
 void ProcessInput(GLFWwindow* window, float deltaTime)
 {
-	//Input
-	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-	{
-		glfwSetWindowShouldClose(window, true);
-	}
-
-	//TODO: Redo with new input manager to prevent it being registered multiple times
-	if (glfwGetKey(window, GLFW_KEY_0) == GLFW_PRESS)
-	{
-		if (mouseLocked)
-		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-			mouseLocked = false;
-		}
-		else
-		{
-			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-			mouseLocked = true;
-		}
-	}
-
-	//Wireframe toggle
-	if (glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	if (glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS)
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 	//Camera controls
 	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
 	if (camComp == nullptr) {return; }
@@ -375,10 +373,47 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	}
 }
 
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	inputManager.KeyCallback(window, key, scancode, action, mods);
+}
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
 	if (camComp == nullptr) { return; }
 	camComp->ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void ToggleMouseCursor()
+{
+	if (mouseLocked)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+		mouseLocked = false;
+	}
+	else
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		mouseLocked = true;
+	}
+}
+
+void ToggleWireframeMode()
+{
+	if (wireframeMode)
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		wireframeMode = false;
+	}
+	else
+	{
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+		wireframeMode = true;
+	}
+}
+
+void CloseWindow()
+{
+	glfwSetWindowShouldClose(window, true);
 }

@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Entity\Components\CameraComponent.cpp" />
     <ClCompile Include="src\Entity\Components\MeshRendererComponent.cpp" />
     <ClCompile Include="src\Entity\Components\Component.cpp" />
@@ -106,6 +107,7 @@
     <Text Include="src\vertexShader.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Entity\Components\CameraComponent.h" />
     <ClInclude Include="src\Entity\Components\MeshRendererComponent.h" />
     <ClInclude Include="src\Entity\Components\Component.h" />
