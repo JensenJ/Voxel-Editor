@@ -72,14 +72,15 @@
     <ClCompile Include="src\InputManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Rendering\FrameBuffer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="src\Shaders\vertexShader.txt" />
     <Text Include="src\Shaders\fragmentShader.txt" />
     <Text Include="src\Shaders\vertexFramebufferScreen.txt" />
     <Text Include="src\Shaders\fragmentFramebufferScreen.txt" />
-    <Text Include="src\Shaders\vertexFramebuffer.txt" />
-    <Text Include="src\Shaders\fragmentFramebuffer.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Rendering\ShaderLoader.h">
@@ -137,6 +138,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\InputManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Rendering\FrameBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

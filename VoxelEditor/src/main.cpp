@@ -19,6 +19,7 @@
 #include "Entity/Components/CameraComponent.h"
 #include "Entity/EntityRegistry.h"
 #include "InputManager.h"
+#include "Rendering/FrameBuffer.h"
 
 int screenWidth = 1920;
 int screenHeight = 1080;
@@ -51,12 +52,7 @@ void ToggleMouseCursor();
 void ToggleWireframeMode();
 void CloseWindow();
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-	screenWidth = width;
-	screenHeight = height;
-	glViewport(0, 0, width, height);
-}
+FrameBuffer* sceneBuffer;
 
 GLFWwindow* InitialiseOpenGL()
 {
@@ -84,6 +80,7 @@ GLFWwindow* InitialiseOpenGL()
 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	glfwSetWindowSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
@@ -120,19 +117,14 @@ void InitialiseImGui(GLFWwindow* window)
 	ImGui_ImplOpenGL3_Init(glsl_version);
 }
 
-GLFWwindow* GetWindow()
-{
-	return nullptr;
-}
-
 int main()
 {
-	//Create OpenGL window
+	//Initialise OpenGL and create window
 	GLFWwindow* window = InitialiseOpenGL();
 	if (window == nullptr) { return -1; }
 	std::cout << "Created Window" << std::endl;
 
-	//Initialise window
+	//Initialise ImGui
 	InitialiseImGui(window);
 
 	//Load shaders
@@ -140,12 +132,6 @@ int main()
 	std::string vertexPath = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexShader.txt";
 	std::string fragmentPath = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentShader.txt";
 	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), shaderSuccess);
-
-	//Frame buffer
-	//bool frameBufferShaderSuccess = true;
-	//std::string frameBufferVertex = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexFramebuffer.txt";
-	//std::string frameBufferFragment = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentFramebuffer.txt";
-	//Shader frameBufferShader = ShaderLoader::CreateShaderProgram(frameBufferVertex.c_str(), frameBufferFragment.c_str(), frameBufferShaderSuccess);
 
 	//Frame buffer for screen
 	bool frameBufferScreenShaderSuccess = false;
@@ -237,11 +223,11 @@ int main()
 	camera->AddComponent<CameraComponent>(glm::vec3(0.0f, 0.0f, 0.0f), YAW, PITCH, MOVEMENTSPEED, SENSITIVITY, ZOOM);
 
 	//Create entities
-	for (int x = 0; x < 3; x++)
+	for (int x = 0; x < 30; x++)
 	{
-		for (int y = 0; y < 2; y++)
+		for (int y = 0; y < 20; y++)
 		{
-			for (int z = 0; z < 10; z++)
+			for (int z = 0; z < 100; z++)
 			{
 				Entity* entity = entityRegistry.CreateEntity();
 				entity->AddComponent<TransformComponent>(glm::vec3(x, y, z));
@@ -263,31 +249,7 @@ int main()
 	frameBufferScreenShader.Use();
 	frameBufferScreenShader.SetInt("screenTexture", 0);
 
-	unsigned int framebuffer;
-	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-	// create a color attachment texture
-	unsigned int textureColourbuffer;
-	glGenTextures(1, &textureColourbuffer);
-	glBindTexture(GL_TEXTURE_2D, textureColourbuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColourbuffer, 0);
-	
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-	//Check buffer is complete
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-	{
-		std::cout << "Error: Framebuffer is not complete" << std::endl;
-	}
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+	sceneBuffer = new FrameBuffer(screenWidth, screenHeight);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -318,7 +280,7 @@ int main()
 		if (wireframeMode) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
 
 		//Rendering
-		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		sceneBuffer->Bind();
 		glEnable(GL_DEPTH_TEST); //Enable depth testing for screen-space quad
 
 		glfwPollEvents();
@@ -369,25 +331,33 @@ int main()
 		}
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		sceneBuffer->Unbind();
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST); //Disable depth test so screen-space quad isnt discarded
 
-		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		frameBufferScreenShader.Use();
-		glBindVertexArray(quadVAO);
-		glBindTexture(GL_TEXTURE_2D, textureColourbuffer);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
-		
-	
 
-		//float f = 0.5f;
+		const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 20, main_viewport->WorkPos.y + 20), ImGuiCond_Once);
+		ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_Once);
 
-		ImGui::ShowDemoWindow();
+		ImGui::Begin("Viewport");
+		{
+			ImGui::BeginChild("View");
+			screenWidth = (int)ImGui::GetContentRegionAvail().x;
+			screenHeight = (int)ImGui::GetContentRegionAvail().y;
 
-		//ImGui::Text("Testing ImGui");
-		//ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+			//Disable a warning which cant be resolved
+			#pragma warning( push )
+			#pragma warning (disable : 4312)
+			ImGui::Image(ImTextureID(sceneBuffer->GetFrameTexture()), ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
+			#pragma warning( pop )
+			ImGui::EndChild();
+		}
+		ImGui::End();
 
 		//Render UI
 		ImGui::Render();
@@ -463,6 +433,14 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
 	if (camComp == nullptr) { return; }
 	camComp->ProcessMouseScroll(static_cast<float>(yoffset));
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+	//screenWidth = width;
+	//screenHeight = height;
+	glViewport(0, 0, width, height);
+	sceneBuffer->RescaleFrameBuffer(width, height);
 }
 
 void ToggleMouseCursor()

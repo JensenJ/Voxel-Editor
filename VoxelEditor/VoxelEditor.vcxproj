@@ -82,6 +82,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\Rendering\FrameBuffer.cpp" />
     <ClCompile Include="src\InputManager.cpp" />
     <ClCompile Include="src\Entity\Components\CameraComponent.cpp" />
     <ClCompile Include="src\Entity\Components\MeshRendererComponent.cpp" />
@@ -103,14 +104,13 @@
     <ClCompile Include="src\Entity\Components\TransformComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="src\Shaders\fragmentFramebuffer.txt" />
     <Text Include="src\Shaders\fragmentFramebufferScreen.txt" />
     <Text Include="src\Shaders\fragmentShader.txt" />
-    <Text Include="src\Shaders\vertexFramebuffer.txt" />
     <Text Include="src\Shaders\vertexFramebufferScreen.txt" />
     <Text Include="src\Shaders\vertexShader.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Rendering\FrameBuffer.h" />
     <ClInclude Include="src\InputManager.h" />
     <ClInclude Include="src\Entity\Components\CameraComponent.h" />
     <ClInclude Include="src\Entity\Components\MeshRendererComponent.h" />
