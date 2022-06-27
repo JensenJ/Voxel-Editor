@@ -1,6 +1,7 @@
 #include "CameraComponent.h"
 #include <iostream>
 #include <GLFW\glfw3.h>
+#include "../../InputManager.h"
 
 CameraComponent::CameraComponent(glm::vec3 position, float yaw, float pitch, float movementSpeed, float mouseSensitivity, float zoom)
 {
@@ -16,23 +17,23 @@ CameraComponent::CameraComponent(glm::vec3 position, float yaw, float pitch, flo
 	UpdateCameraVectors();
 }
 
-void CameraComponent::ProcessInput(GLFWwindow* window, float deltaTime)
+void CameraComponent::ProcessInput(GLFWwindow* window)
 {
     float velocity = movementSpeed * deltaTime;
-    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-        velocity = velocity * 5;
 
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
+        velocity = velocity * 5;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_W))
         position += front * velocity;
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (InputManager::IsKeyDown(window, GLFW_KEY_S))
         position -= front * velocity;
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (InputManager::IsKeyDown(window, GLFW_KEY_A))
         position -= right * velocity;
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+    if (InputManager::IsKeyDown(window, GLFW_KEY_D))
         position += right * velocity;
-    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+    if (InputManager::IsKeyDown(window, GLFW_KEY_Q))
         position -= up * velocity;
-    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+    if (InputManager::IsKeyDown(window, GLFW_KEY_E))
         position += up * velocity;
 }
 

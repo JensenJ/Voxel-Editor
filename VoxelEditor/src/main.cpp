@@ -43,7 +43,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 GLFWwindow* InitialiseOpenGL();
-void ProcessInput(GLFWwindow* window, float deltaTime);
 void InitialiseImGui(GLFWwindow* window);
 
 GLFWwindow* window;
@@ -254,18 +253,21 @@ int main()
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		ProcessInput(window, deltaTime);
-
 		//Rendering
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		CameraComponent* camComponent = camera->GetComponent<CameraComponent>();
-		if (camera == nullptr) { 
+		if (camera == nullptr) {
 			glfwTerminate();
 			std::cout << "Failed to get camera component" << std::endl;
 			return -3; 
 		};
+
+		//Update all components in the entity registry
+		entityRegistry.UpdateAllComponents(deltaTime);
+		camComponent->ProcessInput(window);
+
 		glm::mat4 view = camComponent->GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camComponent->GetZoom()), (float)screenWidth / (float)screenHeight, 0.1f, 100.0f);
 
@@ -335,15 +337,6 @@ int main()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
-}
-
-void ProcessInput(GLFWwindow* window, float deltaTime)
-{
-	//Camera controls
-	CameraComponent* camComp = camera->GetComponent<CameraComponent>();
-	if (camComp == nullptr) {return; }
-
-	camComp->ProcessInput(window, deltaTime);
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

@@ -3,12 +3,14 @@ class Component
 {
 public:
 	virtual void OnStart() {}
-	virtual void OnUpdate() {}
+	virtual void OnUpdate(float deltaTime);
 	virtual void OnDestroy() {}
 
 	void SetOwningEntityID(unsigned int entityID) { owningEntityID = entityID; }
 	unsigned int GetOwningEntityID() { return owningEntityID; }
 private:
 	unsigned int owningEntityID = -1;
+protected:
+	float deltaTime = 0;
 };
 

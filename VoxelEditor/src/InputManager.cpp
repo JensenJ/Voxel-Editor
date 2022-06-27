@@ -1,7 +1,7 @@
 #include "InputManager.h"
 #include <GLFW\glfw3.h>
 
-void InputManager::BindNewKey(int key, int action, int mods, void(*actionToExecute)())
+void InputManager::BindNewKey(int key, int action, int mods, std::function<void()> actionToExecute)
 {
 	//Search actionkeys to see if keyData already exists
 	auto keyData = actionKeys.find(key);
@@ -22,16 +22,16 @@ void InputManager::BindNewKey(int key, int action, int mods, void(*actionToExecu
 		}
 		//If we have not found the action or mod on this key (key found, but not with action/mod), add it
 		std::vector<int> actionMod = {action, mods};
-		std::vector<void(*)()> functionVector = std::vector<void(*)()>();
+		std::vector<std::function<void()>> functionVector = std::vector<std::function<void()>>();
 		functionVector.push_back(actionToExecute);
 		keyData->second.push_back(std::make_pair(actionMod, functionVector));
 	}
 	else //No functions found (key not found)
 	{
 		//Create data to populate new key data
-		std::vector<std::pair<std::vector<int>, std::vector<void(*)()>>> newKeyData = std::vector < std::pair<std::vector<int>, std::vector<void(*)()>>>();
+		std::vector<std::pair<std::vector<int>, std::vector<std::function<void()>>>> newKeyData = std::vector < std::pair<std::vector<int>, std::vector<std::function<void()>>>>();
 		std::vector<int> actionMod = { action, mods };
-		std::vector<void(*)()> functionVector = std::vector<void(*)()>();
+		std::vector<std::function<void()>> functionVector = std::vector<std::function<void()>>();
 		functionVector.push_back(actionToExecute);
 		newKeyData.push_back(std::make_pair(actionMod, functionVector));
 
@@ -61,6 +61,17 @@ void InputManager::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 			}
 		}
 	}
+}
+
+//Function to check if a key is down in this frame, typically will be used in OnUpdate of components
+bool InputManager::IsKeyDown(struct GLFWwindow* window, int key)
+{
+	if (window == nullptr)
+	{ 
+		std::cout << "ERROR: Window not found in IsKeyDown() event." << std::endl;
+		return false; 
+	}
+	return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
 void InputManager::Cleanup()

@@ -44,6 +44,14 @@ public:
 		return false;
 	}
 
+	void UpdateAllComponents(float deltaTime)
+	{
+		for (std::map<Component*, std::vector<Component*>>::iterator iter = componentRegistry.begin(); iter != componentRegistry.end(); ++iter)
+		{
+			iter->first->OnUpdate(deltaTime);
+		}
+	}
+
 	template<typename T>
 	std::vector<T*> GetAllComponentsOfType()
 	{
