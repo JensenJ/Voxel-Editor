@@ -23,7 +23,7 @@ private:
 class ShaderLoader
 {
 public:
-	static const char* LoadShader(const char* filePath);
+	static std::string LoadShader(const char* filePath);
 	static unsigned int CreateShader(const char* filePath, unsigned int shaderType);
 	static Shader CreateShaderProgram(unsigned int vertexShader, unsigned int fragmentShader, bool& outSuccess);
 	static Shader CreateShaderProgram(const char* vertexPath, const char* fragmentPath, bool& outSuccess);

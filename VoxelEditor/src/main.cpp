@@ -131,18 +131,30 @@ int main()
 	GLFWwindow* window = InitialiseOpenGL();
 	if (window == nullptr) { return -1; }
 	std::cout << "Created Window" << std::endl;
-	
+
 	//Initialise window
 	InitialiseImGui(window);
 
 	//Load shaders
-	bool success = false;
-	std::string vertexPath = std::filesystem::current_path().string() + "\\src\\vertexShader.txt";
-	std::string fragmentPath = std::filesystem::current_path().string() + "\\src\\fragmentShader.txt";
-	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), success);
+	bool shaderSuccess = false;
+	std::string vertexPath = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexShader.txt";
+	std::string fragmentPath = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentShader.txt";
+	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), shaderSuccess);
+
+	//Frame buffer
+	bool frameBufferShaderSuccess = true;
+	std::string frameBufferVertex = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexFramebuffer.txt";
+	std::string frameBufferFragment = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentFramebuffer.txt";
+	Shader frameBufferShader = ShaderLoader::CreateShaderProgram(frameBufferVertex.c_str(), frameBufferFragment.c_str(), frameBufferShaderSuccess);
+
+	//Frame buffer for screen
+	bool frameBufferScreenShaderSuccess = false;
+	std::string frameBufferScreenVertex = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexFramebufferScreen.txt";
+	std::string frameBufferScreenFragment = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentFramebufferScreen.txt";
+	Shader frameBufferScreenShader = ShaderLoader::CreateShaderProgram(frameBufferScreenVertex.c_str(), frameBufferScreenFragment.c_str(), frameBufferScreenShaderSuccess);
 
 	//If shader compilation/linking failed
-	if (!success)
+	if (!frameBufferShaderSuccess || !shaderSuccess || !frameBufferScreenShaderSuccess)
 	{
 		std::cout << "Failed to create shaders" << std::endl;
 		glfwTerminate();
@@ -151,16 +163,16 @@ int main()
 	std::cout << "Created Shaders" << std::endl;
 
 	Vertex vertexArray[] = {
-		//Positions									//Colours
-		{glm::vec<3, double>(0.5,  0.5, 0.5),		glm::vec3(0.0f, 0.0f, 0.0f)}, //Front Face top right
-		{glm::vec<3, double>(0.5, -0.5, 0.5),		glm::vec3(1.0f, 0.0f, 0.0f)}, //Front face bottom right
-		{glm::vec<3, double>(-0.5, -0.5, 0.5),		glm::vec3(0.0f, 1.0f, 0.0f)}, //Front face bottom left
-		{glm::vec<3, double>(-0.5,  0.5, 0.5),		glm::vec3(0.0f, 0.0f, 1.0f)}, //Front face top left
-
-		{glm::vec<3, double>(0.5,  0.5, -0.5),		glm::vec3(1.0f, 1.0f, 0.0f)}, //Back Face top right
-		{glm::vec<3, double>(0.5, -0.5, -0.5),		glm::vec3(0.0f, 1.0f, 1.0f)}, //Back face bottom right
-		{glm::vec<3, double>(-0.5, -0.5, -0.5),		glm::vec3(1.0f, 0.0f, 1.0f)}, //Back face bottom left
-		{glm::vec<3, double>(-0.5,  0.5, -0.5),		glm::vec3(1.0f, 1.0f, 1.0f)} //Back face top left
+		//Positions							//Colours
+		{glm::vec3(0.5f,  0.5f, 0.5f),		glm::vec3(0.0f, 0.0f, 0.0f)}, //Front Face top right
+		{glm::vec3(0.5f, -0.5f, 0.5f),		glm::vec3(1.0f, 0.0f, 0.0f)}, //Front face bottom right
+		{glm::vec3(-0.5f, -0.5f, 0.5f),		glm::vec3(0.0f, 1.0f, 0.0f)}, //Front face bottom left
+		{glm::vec3(-0.5f,  0.5f, 0.5f),		glm::vec3(0.0f, 0.0f, 1.0f)}, //Front face top left
+				 
+		{glm::vec3(0.5f,  0.5f, -0.5f),		glm::vec3(1.0f, 1.0f, 0.0f)}, //Back Face top right
+		{glm::vec3(0.5f, -0.5f, -0.5f),		glm::vec3(0.0f, 1.0f, 1.0f)}, //Back face bottom right
+		{glm::vec3(-0.5f, -0.5f, -0.5f),	glm::vec3(1.0f, 0.0f, 1.0f)}, //Back face bottom left
+		{glm::vec3(-0.5f,  0.5f, -0.5f),	glm::vec3(1.0f, 1.0f, 1.0f)} //Back face top left
 	};
 
 	unsigned int indices[] = {
@@ -202,11 +214,11 @@ int main()
 	camera->AddComponent<CameraComponent>(glm::vec3(0.0f, 0.0f, 0.0f), YAW, PITCH, MOVEMENTSPEED, SENSITIVITY, ZOOM);
 
 	//Create entities
-	for (int x = 0; x < 30; x++)
+	for (int x = 0; x < 3; x++)
 	{
-		for (int y = 0; y < 20; y++)
+		for (int y = 0; y < 2; y++)
 		{
-			for (int z = 0; z < 100; z++)
+			for (int z = 0; z < 10; z++)
 			{
 				Entity* entity = entityRegistry.CreateEntity();
 				entity->AddComponent<TransformComponent>(glm::vec3(x, y, z));

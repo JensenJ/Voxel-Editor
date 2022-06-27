@@ -4,14 +4,14 @@
 #include <glm/glm.hpp>
 
 struct Vertex {
-	Vertex(glm::vec<3, double> position, glm::vec<3, float> colour)
+	Vertex(glm::vec3 position, glm::vec3 colour)
 	{
 		this->position = position;
 		this->colour = colour;
 	}
 
-	glm::vec<3, double> position;
-	glm::vec<3, float> colour;
+	glm::vec3 position;
+	glm::vec3 colour;
 };
 
 class RawModel

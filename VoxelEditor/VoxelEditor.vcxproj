@@ -103,8 +103,12 @@
     <ClCompile Include="src\Entity\Components\TransformComponent.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="src\fragmentShader.txt" />
-    <Text Include="src\vertexShader.txt" />
+    <Text Include="src\Shaders\fragmentFramebuffer.txt" />
+    <Text Include="src\Shaders\fragmentFramebufferScreen.txt" />
+    <Text Include="src\Shaders\fragmentShader.txt" />
+    <Text Include="src\Shaders\vertexFramebuffer.txt" />
+    <Text Include="src\Shaders\vertexFramebufferScreen.txt" />
+    <Text Include="src\Shaders\vertexShader.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\InputManager.h" />

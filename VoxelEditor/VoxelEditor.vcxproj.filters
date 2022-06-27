@@ -74,8 +74,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="src\vertexShader.txt" />
-    <Text Include="src\fragmentShader.txt" />
+    <Text Include="src\Shaders\vertexShader.txt" />
+    <Text Include="src\Shaders\fragmentShader.txt" />
+    <Text Include="src\Shaders\vertexFramebufferScreen.txt" />
+    <Text Include="src\Shaders\fragmentFramebufferScreen.txt" />
+    <Text Include="src\Shaders\vertexFramebuffer.txt" />
+    <Text Include="src\Shaders\fragmentFramebuffer.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Rendering\ShaderLoader.h">

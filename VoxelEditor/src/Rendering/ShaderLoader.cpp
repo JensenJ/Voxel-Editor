@@ -7,37 +7,48 @@
 #include <string>
 
 //Load a shader from a file
-const char* ShaderLoader::LoadShader(const char* filePath)
+std::string ShaderLoader::LoadShader(const char* filePath)
 {
 	std::string shader = "";
 	std::string line;
 	std::ifstream file;
-	file.open(filePath, std::ios::in);
-	if (file.is_open())
+
+	try
 	{
-		while (getline(file, line))
+		file.open(filePath, std::ios::in);
+		if (file.is_open())
 		{
-			shader += line + "\n";
+			while (getline(file, line))
+			{
+				shader.append(line + "\n");
+			}
+			file.close();
 		}
-		file.close();
+		else
+		{
+			std::cout << "Unable to open file: " << filePath << std::endl;
+			return shader;
+		}
 	}
-	else
+	catch (const std::ifstream::failure& e)
 	{
-		std::cout << "Unable to open file: " << filePath << std::endl;
-		return nullptr;
+		std::cout << "Unable to open file: " << &e << std::endl;
+		return shader;
 	}
 
-	return shader.c_str();
+	return shader;
 }
 
 //Create a shader of a type from a specified file path
 unsigned int ShaderLoader::CreateShader(const char* filePath, unsigned int shaderType)
 {
-	const char* shaderSource = LoadShader(filePath);
+	std::string shaderSource = LoadShader(filePath);
+	const char* shaderString = shaderSource.c_str();
 
 	unsigned int shader;
 	shader = glCreateShader(shaderType);
-	glShaderSource(shader, 1, &shaderSource, NULL);
+
+	glShaderSource(shader, 1, &shaderString, NULL);
 	glCompileShader(shader);
 
 	int success;
@@ -47,7 +58,7 @@ unsigned int ShaderLoader::CreateShader(const char* filePath, unsigned int shade
 	if (!success)
 	{
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "Error: Shader " << filePath << "failed to compile \n" << infoLog << std::endl;
+		std::cout << "Error: Shader " << filePath << " failed to compile \n" << infoLog << std::endl;
 	}
 
 	return shader;
