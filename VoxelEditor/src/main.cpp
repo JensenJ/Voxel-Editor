@@ -142,10 +142,10 @@ int main()
 	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), shaderSuccess);
 
 	//Frame buffer
-	bool frameBufferShaderSuccess = true;
-	std::string frameBufferVertex = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexFramebuffer.txt";
-	std::string frameBufferFragment = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentFramebuffer.txt";
-	Shader frameBufferShader = ShaderLoader::CreateShaderProgram(frameBufferVertex.c_str(), frameBufferFragment.c_str(), frameBufferShaderSuccess);
+	//bool frameBufferShaderSuccess = true;
+	//std::string frameBufferVertex = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexFramebuffer.txt";
+	//std::string frameBufferFragment = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentFramebuffer.txt";
+	//Shader frameBufferShader = ShaderLoader::CreateShaderProgram(frameBufferVertex.c_str(), frameBufferFragment.c_str(), frameBufferShaderSuccess);
 
 	//Frame buffer for screen
 	bool frameBufferScreenShaderSuccess = false;
@@ -154,7 +154,7 @@ int main()
 	Shader frameBufferScreenShader = ShaderLoader::CreateShaderProgram(frameBufferScreenVertex.c_str(), frameBufferScreenFragment.c_str(), frameBufferScreenShaderSuccess);
 
 	//If shader compilation/linking failed
-	if (!frameBufferShaderSuccess || !shaderSuccess || !frameBufferScreenShaderSuccess)
+	if (!shaderSuccess || !frameBufferScreenShaderSuccess)
 	{
 		std::cout << "Failed to create shaders" << std::endl;
 		glfwTerminate();
@@ -176,19 +176,42 @@ int main()
 	};
 
 	unsigned int indices[] = {
-	3, 1, 0,   // first triangle - front top right, front bottom right, front top left
-	3, 2, 1,   // second triangle - front bottom right, front bottom left, front top left
-	4, 5, 7,   // first triangle - back top right, back bottom right, back top left
-	5, 6, 7,   // second triangle - back bottom right, back bottom left, back top left
-	0, 5, 4,   // first triangle - front top right, back bottom right, back top right
-	1, 5, 0,   // second triangle - front bottom right, back bottom right, front top right
-	7, 6, 3,   // first triangle - front top left, back bottom left, back top left
-	3, 6, 2,   // second triangle - front bottom left, back bottom left, front top left
-	7, 3, 4,   // first triangle - back top left, front top left, back top right
-	3, 0, 4,   // second triangle - back top right, front top right, front top left
-	5, 2, 6,   // first triangle - back bottom left, front bottom left, back bottom right
-	5, 1, 2,   // second triangle - back bottom right, front bottom right, front bottom left
+		3, 1, 0,   // first triangle - front top right, front bottom right, front top left
+		3, 2, 1,   // second triangle - front bottom right, front bottom left, front top left
+		4, 5, 7,   // first triangle - back top right, back bottom right, back top left
+		5, 6, 7,   // second triangle - back bottom right, back bottom left, back top left
+		0, 5, 4,   // first triangle - front top right, back bottom right, back top right
+		1, 5, 0,   // second triangle - front bottom right, back bottom right, front top right
+		7, 6, 3,   // first triangle - front top left, back bottom left, back top left
+		3, 6, 2,   // second triangle - front bottom left, back bottom left, front top left
+		7, 3, 4,   // first triangle - back top left, front top left, back top right
+		3, 0, 4,   // second triangle - back top right, front top right, front top left
+		5, 2, 6,   // first triangle - back bottom left, front bottom left, back bottom right
+		5, 1, 2,   // second triangle - back bottom right, front bottom right, front bottom left
 	};
+
+	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
+		// positions   // texCoords
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		-1.0f, -1.0f,  0.0f, 0.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+
+		-1.0f,  1.0f,  0.0f, 1.0f,
+		 1.0f, -1.0f,  1.0f, 0.0f,
+		 1.0f,  1.0f,  1.0f, 1.0f
+	};
+
+	// screen quad VAO
+	unsigned int quadVAO, quadVBO;
+	glGenVertexArrays(1, &quadVAO);
+	glGenBuffers(1, &quadVBO);
+	glBindVertexArray(quadVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
 	std::vector<Vertex> verticesVector(std::begin(vertexArray), std::end(vertexArray));
 	std::vector<unsigned int> indicesVector(std::begin(indices), std::end(indices));
@@ -237,6 +260,35 @@ int main()
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
 
+	frameBufferScreenShader.Use();
+	frameBufferScreenShader.SetInt("screenTexture", 0);
+
+	unsigned int framebuffer;
+	glGenFramebuffers(1, &framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	// create a color attachment texture
+	unsigned int textureColourbuffer;
+	glGenTextures(1, &textureColourbuffer);
+	glBindTexture(GL_TEXTURE_2D, textureColourbuffer);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, screenWidth, screenHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColourbuffer, 0);
+	
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, screenWidth, screenHeight);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+
+	//Check buffer is complete
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	{
+		std::cout << "Error: Framebuffer is not complete" << std::endl;
+	}
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	while (!glfwWindowShouldClose(window))
 	{
 		//Calculate delta time
@@ -260,12 +312,20 @@ int main()
 			lastTime += 1.0;
 		}
 
+		shaderProgram.Use();
+
+		//Draw wireframe if enabled
+		if (wireframeMode) { glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); }
+
+		//Rendering
+		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+		glEnable(GL_DEPTH_TEST); //Enable depth testing for screen-space quad
+
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
-		//Rendering
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -285,8 +345,6 @@ int main()
 
 		shaderProgram.SetMat4("view", view);
 		shaderProgram.SetMat4("projection", projection);
-
-		shaderProgram.Use();
 
 		for (unsigned int i = 0; i < allMeshRenderers.size(); i++)
 		{
@@ -309,6 +367,20 @@ int main()
 			
 			renderer.Render(*allMeshRenderers[i]->GetMesh());
 		}
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_DEPTH_TEST); //Disable depth test so screen-space quad isnt discarded
+
+		glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		frameBufferScreenShader.Use();
+		glBindVertexArray(quadVAO);
+		glBindTexture(GL_TEXTURE_2D, textureColourbuffer);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		
+	
 
 		//float f = 0.5f;
 
@@ -333,6 +405,9 @@ int main()
 
 		glfwSwapBuffers(window);
 	}
+
+	glDeleteVertexArrays(1, &quadVAO);
+	glDeleteBuffers(1, &quadVBO);
 
 	inputManager.Cleanup();
 	shaderProgram.Delete();
@@ -406,16 +481,7 @@ void ToggleMouseCursor()
 
 void ToggleWireframeMode()
 {
-	if (wireframeMode)
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-		wireframeMode = false;
-	}
-	else
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		wireframeMode = true;
-	}
+	wireframeMode = !wireframeMode;
 }
 
 void CloseWindow()

@@ -3,7 +3,6 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-
 RawModel::RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indices)
 {
 	this->vertices = vertices;
