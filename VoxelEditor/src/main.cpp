@@ -90,7 +90,6 @@ GLFWwindow* InitialiseOpenGL()
 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetWindowSizeCallback(window, framebuffer_size_callback);
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
 	glfwSetKeyCallback(window, key_callback);
@@ -346,8 +345,8 @@ void RenderUI()
 
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
 	
-	ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_Once);
-	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
+	ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_FirstUseEver);
+	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowViewport(viewport->ID);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -391,6 +390,7 @@ void RenderUI()
 	//Menu bars (menus at top)
 	if (ImGui::BeginMenuBar())
 	{
+		//File menu
 		if (ImGui::BeginMenu("File"))
 		{
 			ImGui::MenuItem("New", "Ctrl+N");
@@ -401,6 +401,7 @@ void RenderUI()
 			ImGui::EndMenu();
 		}
 
+		//Edit menu
 		if (ImGui::BeginMenu("Edit"))
 		{
 			ImGui::MenuItem("Undo", "Ctrl+Z");
