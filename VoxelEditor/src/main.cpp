@@ -20,9 +20,10 @@
 #include "Entity/EntityRegistry.h"
 #include "InputManager.h"
 #include "Rendering/FrameBuffer.h"
+#include <thread>
 
-int screenWidth = 1920;
-int screenHeight = 1080;
+int screenWidth = 2560;
+int screenHeight = 1440;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
@@ -46,6 +47,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 GLFWwindow* InitialiseOpenGL();
 void InitialiseImGui(GLFWwindow* window);
 
+void RenderUI();
+
 GLFWwindow* window;
 
 void ToggleMouseCursor();
@@ -61,6 +64,7 @@ GLFWwindow* InitialiseOpenGL()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
+	//glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_FALSE);
 
 	window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
 	if (window == NULL)
@@ -70,6 +74,7 @@ GLFWwindow* InitialiseOpenGL()
 		return nullptr;
 	}
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(1);
 
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
@@ -77,6 +82,12 @@ GLFWwindow* InitialiseOpenGL()
 		glfwTerminate();
 		return nullptr;
 	}
+
+	//Center window
+	GLFWmonitor* monitor = glfwGetPrimaryMonitor();
+	const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+	glfwSetWindowPos(window, (mode->width - screenWidth) / 2, (mode->height - screenHeight) / 2);
+	glfwMaximizeWindow(window);
 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -133,14 +144,8 @@ int main()
 	std::string fragmentPath = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentShader.txt";
 	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), shaderSuccess);
 
-	//Frame buffer for screen
-	bool frameBufferScreenShaderSuccess = false;
-	std::string frameBufferScreenVertex = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexFramebufferScreen.txt";
-	std::string frameBufferScreenFragment = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentFramebufferScreen.txt";
-	Shader frameBufferScreenShader = ShaderLoader::CreateShaderProgram(frameBufferScreenVertex.c_str(), frameBufferScreenFragment.c_str(), frameBufferScreenShaderSuccess);
-
 	//If shader compilation/linking failed
-	if (!shaderSuccess || !frameBufferScreenShaderSuccess)
+	if (!shaderSuccess)
 	{
 		std::cout << "Failed to create shaders" << std::endl;
 		glfwTerminate();
@@ -176,29 +181,6 @@ int main()
 		5, 1, 2,   // second triangle - back bottom right, front bottom right, front bottom left
 	};
 
-	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-		// positions   // texCoords
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		-1.0f, -1.0f,  0.0f, 0.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-
-		-1.0f,  1.0f,  0.0f, 1.0f,
-		 1.0f, -1.0f,  1.0f, 0.0f,
-		 1.0f,  1.0f,  1.0f, 1.0f
-	};
-
-	// screen quad VAO
-	unsigned int quadVAO, quadVBO;
-	glGenVertexArrays(1, &quadVAO);
-	glGenBuffers(1, &quadVBO);
-	glBindVertexArray(quadVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-
 	std::vector<Vertex> verticesVector(std::begin(vertexArray), std::end(vertexArray));
 	std::vector<unsigned int> indicesVector(std::begin(indices), std::end(indices));
 
@@ -223,9 +205,9 @@ int main()
 	camera->AddComponent<CameraComponent>(glm::vec3(0.0f, 0.0f, 0.0f), YAW, PITCH, MOVEMENTSPEED, SENSITIVITY, ZOOM);
 
 	//Create entities
-	for (int x = 0; x < 30; x++)
+	for (int x = 0; x < 3; x++)
 	{
-		for (int y = 0; y < 20; y++)
+		for (int y = 0; y < 2; y++)
 		{
 			for (int z = 0; z < 100; z++)
 			{
@@ -245,9 +227,6 @@ int main()
 
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
-
-	frameBufferScreenShader.Use();
-	frameBufferScreenShader.SetInt("screenTexture", 0);
 
 	sceneBuffer = new FrameBuffer(screenWidth, screenHeight);
 
@@ -286,6 +265,7 @@ int main()
 		glfwPollEvents();
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
+
 		ImGui::NewFrame();
 
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -332,52 +312,18 @@ int main()
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		sceneBuffer->Unbind();
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDisable(GL_DEPTH_TEST); //Disable depth test so screen-space quad isnt discarded
 
+		//Render over previous frame
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		frameBufferScreenShader.Use();
 
-		const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + 20, main_viewport->WorkPos.y + 20), ImGuiCond_Once);
-		ImGui::SetNextWindowSize(ImVec2(1280, 720), ImGuiCond_Once);
-
-		ImGui::Begin("Viewport");
-		{
-			ImGui::BeginChild("View");
-			screenWidth = (int)ImGui::GetContentRegionAvail().x;
-			screenHeight = (int)ImGui::GetContentRegionAvail().y;
-
-			//Disable a warning which cant be resolved
-			#pragma warning( push )
-			#pragma warning (disable : 4312)
-			ImGui::Image(ImTextureID(sceneBuffer->GetFrameTexture()), ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
-			#pragma warning( pop )
-			ImGui::EndChild();
-		}
-		ImGui::End();
-
-		//Render UI
-		ImGui::Render();
-		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-		//Render other viewports
-		ImGuiIO& io = ImGui::GetIO(); (void)io;
-		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-		{
-			GLFWwindow* backup_current_context = glfwGetCurrentContext();
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-			glfwMakeContextCurrent(backup_current_context);
-		}
+		//Render ImGui stuff
+		RenderUI();
 
 		glfwSwapBuffers(window);
 	}
-
-	glDeleteVertexArrays(1, &quadVAO);
-	glDeleteBuffers(1, &quadVBO);
 
 	inputManager.Cleanup();
 	shaderProgram.Delete();
@@ -394,6 +340,100 @@ int main()
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
+}
+
+//Render ImGui UI
+void RenderUI()
+{
+	static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
+
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+
+	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_Once);
+	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+
+	windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+	windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+	
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	ImGui::Begin("Dockspace", nullptr, windowFlags);
+	ImGui::PopStyleVar(2);
+
+	// Create dockspace
+	ImGuiIO& io = ImGui::GetIO();
+	ImGuiID dockspace_id = ImGui::GetID("Dockspace");
+	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspaceFlags);
+	
+	std::cout << io.Framerate << std::endl;
+	
+
+	//Menu bars (menus at top)
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			ImGui::MenuItem("New", "Ctrl+N");
+			ImGui::MenuItem("Open", "Ctrl+N");
+			ImGui::Separator();
+			ImGui::MenuItem("Save", "Ctrl+S");
+			ImGui::MenuItem("Save As", "Ctrl+Shift+S");
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Edit"))
+		{
+			ImGui::MenuItem("Undo", "Ctrl+Z");
+			ImGui::MenuItem("Redo", "Ctrl+Shift+Z");
+			ImGui::EndMenu();
+		}
+		
+		ImGui::EndMenuBar();
+
+	}
+	ImGui::End();
+
+
+	//Dock main viewport to dockspace
+	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
+	//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+
+	//Render viewport with openGL frame buffer
+	ImGui::Begin("Viewport");
+	{
+		ImGui::BeginChild("View");
+		screenWidth = (int)ImGui::GetContentRegionAvail().x;
+		screenHeight = (int)ImGui::GetContentRegionAvail().y;
+
+		//Disable a warning which cant be resolved
+		#pragma warning( push )
+		#pragma warning (disable : 4312)
+		ImGui::Image(ImTextureID(sceneBuffer->GetFrameTexture()), ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
+		#pragma warning( pop )
+		ImGui::EndChild();
+	}
+	ImGui::End();
+
+	
+	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
+	ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+	ImGui::ShowDemoWindow();
+
+	//Render ImGui
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+	//Render other viewports
+	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+	{
+		GLFWwindow* backup_current_context = glfwGetCurrentContext();
+		ImGui::UpdatePlatformWindows();
+		ImGui::RenderPlatformWindowsDefault();
+		glfwMakeContextCurrent(backup_current_context);
+	}
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
@@ -437,8 +477,6 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
-	//screenWidth = width;
-	//screenHeight = height;
 	glViewport(0, 0, width, height);
 	sceneBuffer->RescaleFrameBuffer(width, height);
 }
