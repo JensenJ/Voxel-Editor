@@ -7,6 +7,7 @@
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_glfw.h"
 #include "ImGui/imgui_impl_opengl3.h"
+#include "ImGui/imgui_internal.h"
 #include <iostream>
 #include <vector>
 #include <filesystem>
@@ -20,7 +21,6 @@
 #include "Entity/EntityRegistry.h"
 #include "InputManager.h"
 #include "Rendering/FrameBuffer.h"
-#include <thread>
 
 int screenWidth = 2560;
 int screenHeight = 1440;
@@ -64,7 +64,6 @@ GLFWwindow* InitialiseOpenGL()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
-	//glfwWindowHint(GLFW_DOUBLEBUFFER, GLFW_FALSE);
 
 	window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
 	if (window == NULL)
@@ -105,15 +104,11 @@ void InitialiseImGui(GLFWwindow* window)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO(); (void)io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-	//io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 	io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
 	io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-	//io.ConfigViewportsNoAutoMerge = true;
-	//io.ConfigViewportsNoTaskBarIcon = true;
 
 	// Setup Dear ImGui style
 	ImGui::StyleColorsDark();
-	//ImGui::StyleColorsClassic();
 
 	// When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
 	ImGuiStyle& style = ImGui::GetStyle();
@@ -350,6 +345,7 @@ void RenderUI()
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	
 	ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_Once);
 	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
 	ImGui::SetNextWindowViewport(viewport->ID);
@@ -366,10 +362,31 @@ void RenderUI()
 	// Create dockspace
 	ImGuiIO& io = ImGui::GetIO();
 	ImGuiID dockspace_id = ImGui::GetID("Dockspace");
+	//check if this layout exists (if defined in imgui.ini)
+	static bool firstTimeLoading = ImGui::DockBuilderGetNode(dockspace_id) == nullptr;
+	 //Create new dockspace with this id (loads layout if one exists)
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspaceFlags);
-	
-	std::cout << io.Framerate << std::endl;
-	
+
+	//Specify layout of viewports if this is the first time loading
+	if (firstTimeLoading)
+	{
+		//Prevent layout being reapplied next frame
+		firstTimeLoading = false;
+
+		//Clear previous dockspace layout
+		ImGui::DockBuilderRemoveNode(dockspace_id);
+		ImGui::DockBuilderAddNode(dockspace_id, dockspaceFlags | ImGuiDockNodeFlags_DockSpace);
+		ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
+
+		//Create new node on the right of this dockspace
+		auto dockIdRight = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, nullptr, &dockspace_id);
+		auto dockIdRightTop = ImGui::DockBuilderSplitNode(dockIdRight, ImGuiDir_Up, 0.25f, nullptr, &dockIdRight);
+
+		//Dock the windows in the correct place
+		ImGui::DockBuilderDockWindow("Properties", dockIdRight);
+		ImGui::DockBuilderDockWindow("Hierarchy", dockIdRightTop);
+		ImGui::DockBuilderFinish(dockspace_id);
+	}
 
 	//Menu bars (menus at top)
 	if (ImGui::BeginMenuBar())
@@ -396,10 +413,8 @@ void RenderUI()
 	}
 	ImGui::End();
 
-
 	//Dock main viewport to dockspace
-	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
-	//ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+	ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 
 	//Render viewport with openGL frame buffer
 	ImGui::Begin("Viewport");
@@ -415,12 +430,20 @@ void RenderUI()
 		#pragma warning( pop )
 		ImGui::EndChild();
 	}
+
 	ImGui::End();
 
-	
-	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Once);
-	ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-	ImGui::ShowDemoWindow();
+	ImGui::Begin("Hierarchy");
+	{
+		ImGui::Text("TestLabel");
+	}
+	ImGui::End();
+
+	ImGui::Begin("Properties");
+	{
+		ImGui::Text("TestLabel");
+	}
+	ImGui::End();
 
 	//Render ImGui
 	ImGui::Render();
