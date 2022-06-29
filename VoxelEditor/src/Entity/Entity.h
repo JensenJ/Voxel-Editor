@@ -8,9 +8,11 @@
 class Entity
 {
 public:
-	Entity(unsigned int entityID, class EntityRegistry* eRegistry);
+	Entity(unsigned int entityID, class EntityRegistry* eRegistry, std::string EntityName);
 
 	unsigned int GetEntityID() { return entityID; }
+	std::string GetEntityName() { return entityName; }
+	void SetEntityName(std::string entityName) { this->entityName = entityName; }
 
 	template<typename T, class... Args>
 	T* AddComponent(Args... args)
@@ -71,9 +73,15 @@ public:
 		return false;
 	}
 
+	//IF this entity is selected
+	bool isSelected = false;
+
 private:
 	//The id associated with this entity, should be unique for each instance
 	unsigned int entityID;
+	//The name associated with this entity, does not have to be unique
+	std::string entityName;
+
 	//Registry of entities, faster accessing for bulk data, e.g. updating components/rendering
 	class EntityRegistry* eRegistry;
 

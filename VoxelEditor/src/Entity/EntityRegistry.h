@@ -21,7 +21,7 @@ public:
 	std::map<Component*, std::vector<Component*>> componentRegistry;
 
 public:
-	class Entity* CreateEntity();
+	class Entity* CreateEntity(std::string entityName = "Entity");
 
 	void Cleanup();
 
@@ -100,6 +100,7 @@ public:
 	}
 
 	class Entity* GetEntityFromID(unsigned int id);
+	std::map<unsigned int, class Entity*> GetAllEntities();
 
 private:
 	unsigned int entityCount = 0;

@@ -39,6 +39,7 @@ float lastMouseY = screenHeight / 2.0f;
 bool firstMouse = true;
 
 InputManager inputManager;
+EntityRegistry entityRegistry;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -180,7 +181,7 @@ int main()
 
 	RawModel testModel = RawModel(verticesVector, indicesVector);
 	EntityRenderer renderer = EntityRenderer();
-	EntityRegistry entityRegistry = EntityRegistry();
+	entityRegistry = EntityRegistry();
 
 	//Basic Input binding
 	inputManager = InputManager();
@@ -195,7 +196,7 @@ int main()
 	const float SENSITIVITY = 0.1f;
 	const float ZOOM = 45.0f;
 
-	camera = entityRegistry.CreateEntity();
+	camera = entityRegistry.CreateEntity("Camera");
 	camera->AddComponent<CameraComponent>(glm::vec3(0.0f, 0.0f, 0.0f), YAW, PITCH, MOVEMENTSPEED, SENSITIVITY, ZOOM);
 
 	//Create entities
@@ -205,7 +206,7 @@ int main()
 		{
 			for (int z = 0; z < 100; z++)
 			{
-				Entity* entity = entityRegistry.CreateEntity();
+				Entity* entity = entityRegistry.CreateEntity("Cube (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
 				entity->AddComponent<TransformComponent>(glm::vec3(x, y, z));
 				entity->AddComponent<MeshRendererComponent>(&testModel);
 			}
@@ -366,6 +367,8 @@ void RenderUI()
 	 //Create new dockspace with this id (loads layout if one exists)
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspaceFlags);
 
+
+
 	//Specify layout of viewports if this is the first time loading
 	if (firstTimeLoading)
 	{
@@ -436,7 +439,29 @@ void RenderUI()
 
 	ImGui::Begin("Hierarchy");
 	{
-		ImGui::Text("TestLabel");
+		//Get all entities and list them
+		std::map<unsigned int, Entity*> entities = entityRegistry.GetAllEntities();
+
+		static ImGuiTableFlags entityHierarchyFlags = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders | ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+
+		if (ImGui::BeginTable("Hierarchy Entity Table", 2, entityHierarchyFlags))
+		{
+			//Print table headers
+			ImGui::TableSetupColumn("Entity ID", ImGuiTableColumnFlags_WidthFixed);
+			ImGui::TableSetupColumn("Entity Name", ImGuiTableColumnFlags_WidthStretch);
+			ImGui::TableHeadersRow();
+
+			for (std::map<unsigned int, Entity*>::iterator iter = entities.begin(); iter != entities.end(); ++iter)
+			{
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn();
+				ImGui::Selectable(std::to_string(iter->second->GetEntityID()).c_str(), &(iter->second->isSelected), ImGuiSelectableFlags_SpanAllColumns);
+				ImGui::TableNextColumn();
+				ImGui::Text("%s", iter->second->GetEntityName());
+
+			}
+			ImGui::EndTable();
+		}
 	}
 	ImGui::End();
 
@@ -445,6 +470,8 @@ void RenderUI()
 		ImGui::Text("TestLabel");
 	}
 	ImGui::End();
+
+	ImGui::ShowDemoWindow();
 
 	//Render ImGui
 	ImGui::Render();

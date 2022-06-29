@@ -1,10 +1,9 @@
 #include "EntityRegistry.h"
 #include "Entity.h"
 
-Entity* EntityRegistry::CreateEntity()
+Entity* EntityRegistry::CreateEntity(std::string entityName)
 {
-	Entity* entity = new Entity(entityCount, this);
-	//entities.emplace(entityCount, &entity);
+	Entity* entity = new Entity(entityCount, this, entityName);
 	entities.insert(std::pair<unsigned int, Entity*>(entityCount, entity));
 	entityCount += 1;
 	return entity;
@@ -21,11 +20,15 @@ void EntityRegistry::Cleanup()
 	entities.clear();
 }
 
+std::map<unsigned int, class Entity*> EntityRegistry::GetAllEntities()
+{
+	return entities;
+}
+
+
 Entity* EntityRegistry::GetEntityFromID(unsigned int id)
 {
 	auto foundEntity = entities.find(id);
-
-	//std::cout << foundEntity->first << ", " << foundEntity->second << std::endl;
 
 	if (foundEntity != entities.end())
 	{
