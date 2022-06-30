@@ -11,6 +11,7 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <set>
 #include "Rendering/ShaderLoader.h"
 #include "Rendering/RawModel.h"
 #include "Rendering/EntityRenderer.h"
@@ -51,6 +52,8 @@ void InitialiseImGui(GLFWwindow* window);
 void RenderUI();
 
 GLFWwindow* window;
+
+std::set<Entity*> selectedEntities;
 
 void ToggleMouseCursor();
 void ToggleWireframeMode();
@@ -204,7 +207,7 @@ int main()
 	{
 		for (int y = 0; y < 2; y++)
 		{
-			for (int z = 0; z < 100; z++)
+			for (int z = 0; z < 10; z++)
 			{
 				Entity* entity = entityRegistry.CreateEntity("Cube (" + std::to_string(x) + ", " + std::to_string(y) + ", " + std::to_string(z) + ")");
 				entity->AddComponent<TransformComponent>(glm::vec3(x, y, z));
@@ -283,6 +286,16 @@ int main()
 		shaderProgram.SetMat4("view", view);
 		shaderProgram.SetMat4("projection", projection);
 
+		//Move selected entities up
+		for (auto iter = selectedEntities.begin(); iter != selectedEntities.end(); ++iter)
+		{
+			TransformComponent* transform = (*iter)->GetComponent<TransformComponent>();
+			if (transform != nullptr)
+			{
+				transform->AddPosition(glm::vec3(0.0f, 0.25f, 0.0f) * deltaTime);
+			}
+		}
+
 		for (unsigned int i = 0; i < allMeshRenderers.size(); i++)
 		{
 			Entity* entity = entityRegistry.GetEntityFromID(allMeshRenderers[i]->GetOwningEntityID());
@@ -345,7 +358,7 @@ void RenderUI()
 	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
 
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	
+
 	ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_FirstUseEver);
 	ImGui::SetNextWindowViewport(viewport->ID);
@@ -354,7 +367,7 @@ void RenderUI()
 
 	windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
 	windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-	
+
 	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
 	ImGui::Begin("Dockspace", nullptr, windowFlags);
 	ImGui::PopStyleVar(2);
@@ -364,7 +377,7 @@ void RenderUI()
 	ImGuiID dockspace_id = ImGui::GetID("Dockspace");
 	//check if this layout exists (if defined in imgui.ini)
 	static bool firstTimeLoading = ImGui::DockBuilderGetNode(dockspace_id) == nullptr;
-	 //Create new dockspace with this id (loads layout if one exists)
+	//Create new dockspace with this id (loads layout if one exists)
 	ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspaceFlags);
 
 
@@ -411,7 +424,7 @@ void RenderUI()
 			ImGui::MenuItem("Redo", "Ctrl+Shift+Z");
 			ImGui::EndMenu();
 		}
-		
+
 		ImGui::EndMenuBar();
 
 	}
@@ -451,39 +464,104 @@ void RenderUI()
 			ImGui::TableSetupColumn("Entity Name", ImGuiTableColumnFlags_WidthStretch);
 			ImGui::TableHeadersRow();
 
+			//Print Entities in panel and make them selectable
 			for (std::map<unsigned int, Entity*>::iterator iter = entities.begin(); iter != entities.end(); ++iter)
 			{
+				bool selected = false;
+				bool found = false;
+
+				//If this entity is part of selected entities already, then set selected to true
+				auto selectedEntity = selectedEntities.find(iter->second);
+
+				if (selectedEntity != selectedEntities.end())
+				{
+					selected = true;
+					found = true;
+				}
+
 				ImGui::TableNextRow();
 				ImGui::TableNextColumn();
-				ImGui::Selectable(std::to_string(iter->second->GetEntityID()).c_str(), &(iter->second->isSelected), ImGuiSelectableFlags_SpanAllColumns);
+				if (ImGui::Selectable(std::to_string(iter->second->GetEntityID()).c_str(), &selected, ImGuiSelectableFlags_SpanAllColumns))
+				{
+
+					if (!ImGui::GetIO().KeyCtrl) //If ctrl is not held
+					{
+						//Clear the existing entities
+						selectedEntities.clear();
+						
+						//Check if its false as clicking on a selected item would deselect it
+						if(selected == false)
+						{
+							if (found == true) //If this entity was previously selected
+							{
+								//Add it back to selected entities
+								selectedEntities.insert(iter->second);
+							}
+						}
+						//If this entity is a different selection from on the list
+						else
+						{
+							if (found == true) //If this entity was found in selected entities
+							{
+								selectedEntities.erase(iter->second);
+							}
+							else //If this entity was not found in selected entities
+							{
+								selectedEntities.insert(iter->second);
+							}
+						}
+					}
+					else //If CTRL was held
+					{
+						//If this entity is selected
+						if (selected == true)
+						{
+							if (found == false) //If entity is not on the list already
+							{
+								selectedEntities.insert(iter->second);
+							}
+						}
+						else
+						{
+							if (found == true) //If entity is on the list already
+							{
+								selectedEntities.erase(iter->second);
+							}
+						}
+					}
+				}
 				ImGui::TableNextColumn();
 				ImGui::Text("%s", iter->second->GetEntityName());
 
+				// Clear selection when CTRL is not held
+				
+
+				
 			}
 			ImGui::EndTable();
 		}
-	}
-	ImGui::End();
+		ImGui::End();
 
-	ImGui::Begin("Properties");
-	{
-		ImGui::Text("TestLabel");
-	}
-	ImGui::End();
+		ImGui::Begin("Properties");
+		{
+			ImGui::Text("TestLabel");
+		}
+		ImGui::End();
 
-	ImGui::ShowDemoWindow();
+		ImGui::ShowDemoWindow();
 
-	//Render ImGui
-	ImGui::Render();
-	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+		//Render ImGui
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-	//Render other viewports
-	if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-	{
-		GLFWwindow* backup_current_context = glfwGetCurrentContext();
-		ImGui::UpdatePlatformWindows();
-		ImGui::RenderPlatformWindowsDefault();
-		glfwMakeContextCurrent(backup_current_context);
+		//Render other viewports
+		if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
+		{
+			GLFWwindow* backup_current_context = glfwGetCurrentContext();
+			ImGui::UpdatePlatformWindows();
+			ImGui::RenderPlatformWindowsDefault();
+			glfwMakeContextCurrent(backup_current_context);
+		}
 	}
 }
 
