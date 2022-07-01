@@ -14,6 +14,8 @@ public:
 	std::string GetEntityName() { return entityName; }
 	void SetEntityName(std::string entityName) { this->entityName = entityName; }
 
+	std::vector<Component*> GetComponents();
+
 	template<typename T, class... Args>
 	T* AddComponent(Args... args)
 	{

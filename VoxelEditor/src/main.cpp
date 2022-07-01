@@ -16,6 +16,7 @@
 #include "Rendering/RawModel.h"
 #include "Rendering/EntityRenderer.h"
 #include "Entity/Entity.h"
+#include "Entity/Components/Component.h"
 #include "Entity/Components/TransformComponent.h"
 #include "Entity/Components/MeshRendererComponent.h"
 #include "Entity/Components/CameraComponent.h"
@@ -532,19 +533,39 @@ void RenderUI()
 				}
 				ImGui::TableNextColumn();
 				ImGui::Text("%s", iter->second->GetEntityName());
-
-				// Clear selection when CTRL is not held
-				
-
 				
 			}
 			ImGui::EndTable();
 		}
 		ImGui::End();
 
+		//Properties window for selected entities
 		ImGui::Begin("Properties");
+		
+		//ImGui::Text("TestLabel");
+		//For every selected entity
+		for (auto iter = selectedEntities.begin(); iter != selectedEntities.end(); ++iter)
 		{
-			ImGui::Text("TestLabel");
+			//Create tree node for this entity
+			if (ImGui::TreeNode((*iter)->GetEntityName().c_str()))
+			{
+				//Get its components and create nodes for all of them
+				std::vector<Component*> components = (*iter)->GetComponents();
+				for (int i = 0; i < components.size(); i++)
+				{
+					//If this component has a properties panel
+					if (components[i]->ShouldRenderProperties())
+					{
+						//Render it with the name of this component
+						if (ImGui::TreeNode(components[i]->GetComponentName().c_str()))
+						{
+							components[i]->RenderPropertiesPanel();
+							ImGui::TreePop();
+						}
+					}
+				}
+				ImGui::TreePop();
+			}
 		}
 		ImGui::End();
 

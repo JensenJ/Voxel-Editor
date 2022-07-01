@@ -3,16 +3,21 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <iostream>
+#include "../../ImGui/imgui.h"
 
 TransformComponent::TransformComponent(glm::vec3 position)
 {
 	SetPosition(position);
+	componentName = "Transform Component";
+	shouldRenderProperties = true;
 }
 
 TransformComponent::TransformComponent(glm::vec3 position, glm::vec3 rotation)
 {
 	SetPosition(position);
 	SetRotation(rotation);
+	componentName = "Transform Component";
+	shouldRenderProperties = true;
 }
 
 TransformComponent::TransformComponent(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale)
@@ -20,6 +25,16 @@ TransformComponent::TransformComponent(glm::vec3 position, glm::vec3 rotation, g
 	SetPosition(position);
 	SetRotation(rotation);
 	SetScale(scale);
+	componentName = "Transform Component";
+	shouldRenderProperties = true;
+}
+
+//Imgui code for when this component is rendered in the properties panel
+void TransformComponent::RenderPropertiesPanel()
+{
+	ImGui::InputFloat("X", &transform[3].x);
+	ImGui::InputFloat("Y", &transform[3].y);
+	ImGui::InputFloat("Z", &transform[3].z);
 }
 
 glm::vec3 TransformComponent::GetPosition()

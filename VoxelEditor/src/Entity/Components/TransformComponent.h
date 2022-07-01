@@ -25,6 +25,8 @@ public:
 	void AddRotation(glm::vec3 addedRotation);
 	void AddRotation(float newRotation, glm::vec3 axis);
 
+	void RenderPropertiesPanel() override;
+
 private:
 	glm::mat4 transform = glm::mat4(1.0f);
 	glm::vec3 rotationEuler = glm::vec3(0.0f);	//Easier to keep copy than to extract from transform matrix, must update whenever rotation is applied
