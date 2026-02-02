@@ -1,6 +1,5 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 
-#pragma once
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -534,7 +533,7 @@ void RenderUI()
 					}
 				}
 				ImGui::TableNextColumn();
-				ImGui::Text("%s", iter->second->GetEntityName());
+				ImGui::Text("%s", iter->second->GetEntityName().c_str());
 				
 			}
 			ImGui::EndTable();

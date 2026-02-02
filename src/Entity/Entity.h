@@ -46,7 +46,8 @@ public:
 		//loop over local components, find component of type T
 		for (int i = 0; i < components.size(); i++)
 		{
-			if (typeid(*components[i]).name() == typeid(T).name())
+			Component& comp = *components[i];
+			if (typeid(comp.name() == typeid(T).name())
 			{
 				return static_cast<T*>(components[i]);
 			}
@@ -66,7 +67,8 @@ public:
 
 		for (int i = 0; i < components.size(); i++)
 		{
-			if (typeid(*components[i]).name() == typeid(T).name())
+			Component& comp = *components[i];
+			if (typeid(comp).name() == typeid(T).name())
 			{
 				return true;
 			}
