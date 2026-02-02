@@ -49,12 +49,12 @@ jobs:
       - name: Copy resources to output
         run: |
           mkdir -p build/bin/resources
-          cp -r resources/* build/bin/resources/
+          cp -r resources/* build/resources/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: VoxelEditor--run${{ github.run_number }}-${{ runner.os }}
           path: |
-            build/bin/voxel_editor*
-            build/bin/resources
+            build/**/voxel_editor*
+            build/**/resources
