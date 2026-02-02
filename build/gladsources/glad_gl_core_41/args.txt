@@ -1,1 +1,0 @@
---out-path "C:/Users/jense/Documents/Coding/Voxel Editor/build/gladsources/glad_gl_core_41" --api gl:core=4.1 --reproducible c --loader 
