@@ -33,21 +33,6 @@ jobs:
         run: |
           glslangValidator -G --glsl-version 410 resources/shaders/*
 
-  static-analysis:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Run clang-tidy
-        run: |
-          echo "Finding all source files in src/"
-          FILES=$(git ls-files "src/**/*.cpp" "src/**/*.h")
-          for f in $FILES; do
-            echo "Checking $f"
-            clang-tidy "$f" || exit 1
-          done
-
   build:
     runs-on: ${{ matrix.os }}
 
@@ -101,6 +86,7 @@ jobs:
          cmake -S . -B build -G Ninja
          --log-level=VERBOSE 
          -DCMAKE_BUILD_TYPE=Release
+         -DENABLE_CLANG_TIDY=ON
 
       - name: Build
         run: cmake --build build --parallel --config Release

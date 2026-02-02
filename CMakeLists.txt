@@ -11,6 +11,18 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+option(ENABLE_CLANG_TIDY "Enable clang-tidy analysis" OFF)
+
+#This only runs in CI on linux
+if (ENABLE_CLANG_TIDY AND (UNIX AND NOT APPLE))
+    find_program(CLANG_TIDY_EXE NAMES clang-tidy)
+    if (CLANG_TIDY_EXE)
+        set(CMAKE_CXX_CLANG_TIDY {CLANG_TIDY_EXE})
+    else()
+        message(WARNING "clang-tidy requested but not found")
+	endif()
+endif()
+
 #Dependencies
 include(FetchContent)
 
