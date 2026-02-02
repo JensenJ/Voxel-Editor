@@ -1,18 +1,7 @@
-Checks: >
-  -*,
-  bugprone-*,
-  performance-*,
-  readability-*,
-  modernize-*,
-  cppcoreguidelines-*,
-  clang-analyzer-*
-
-WarningsAsErrors: >
-  clang-analyzer-*,
-  bugprone-*
-
+Checks: "-*,bugprone-*,clang-analyzer-*,modernize-*,performance-*,readability-*,misc-*"
+WarningsAsErrors: '*'
 HeaderFilterRegex: 'src/.*'
-
+SystemIncludes: false
 CheckOptions:
-  - key: cppcoreguidelines-owning-memory.IgnoreSmartPointers
-    value: true
+  - key: modernize-use-trailing-return-type.IgnoreMacros
+    value: '1'
