@@ -1,7 +1,7 @@
 #version 410 core
 
-out vec4 fragColor;
-in vec3 vertexColor;
+layout (location = 0) in vec3 vertexColor;
+layout (location = 0) out vec4 fragColor;
 
 void main()
 {

@@ -13,8 +13,6 @@ WarningsAsErrors: >
 
 HeaderFilterRegex: 'src/.*'
 
-AnalyzeTemporaryDtors: false
-
 CheckOptions:
   - key: cppcoreguidelines-owning-memory.IgnoreSmartPointers
     value: true
