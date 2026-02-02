@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <map>
+#include <set>
 #include <utility>
 #include <vector>
 #include "Components/Component.h"
@@ -21,6 +22,11 @@ class EntityRegistry {
     std::map<Component*, std::vector<Component*>> componentRegistry;
 
   public:
+    static EntityRegistry* GetInstance();
+
+    std::set<class Entity*> selectedEntities = std::set<class Entity*>();
+    class Entity* camera;
+
     class Entity* CreateEntity(std::string entityName = "Entity");
 
     void Cleanup();
@@ -106,6 +112,11 @@ class EntityRegistry {
     std::map<unsigned int, class Entity*> GetAllEntities();
 
   private:
+    EntityRegistry() = default;
+
+  private:
     unsigned int entityCount = 0;
     std::map<unsigned int, class Entity*> entities;
+
+    static EntityRegistry* instance;
 };

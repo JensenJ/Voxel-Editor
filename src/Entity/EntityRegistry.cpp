@@ -1,6 +1,15 @@
 #include "EntityRegistry.h"
 #include "Entity.h"
 
+EntityRegistry* EntityRegistry::instance = nullptr;
+
+EntityRegistry* EntityRegistry::GetInstance() {
+    if (instance == nullptr) {
+        instance = new EntityRegistry();
+    }
+    return instance;
+}
+
 Entity* EntityRegistry::CreateEntity(std::string entityName) {
     Entity* entity = new Entity(entityCount, this, entityName);
     entities.insert(std::pair<unsigned int, Entity*>(entityCount, entity));

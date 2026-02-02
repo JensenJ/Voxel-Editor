@@ -1,6 +1,15 @@
 #include "InputManager.h"
 #include <GLFW/glfw3.h>
 
+InputManager* InputManager::instance = nullptr;
+
+InputManager* InputManager::GetInstance() {
+    if (instance == nullptr) {
+        instance = new InputManager();
+    }
+    return instance;
+}
+
 void InputManager::BindNewKey(int key, int action, int mods,
                               std::function<void()> actionToExecute) {
     // Search actionkeys to see if keyData already exists
