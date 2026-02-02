@@ -3,7 +3,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 #include <iostream>
-#include "../../ImGui/imgui.h"
+#include <imgui.h>
 
 TransformComponent::TransformComponent(glm::vec3 position)
 {

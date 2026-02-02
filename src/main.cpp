@@ -1,13 +1,15 @@
+#define IMGUI_IMPL_OPENGL_LOADER_GLAD
+
 #pragma once
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-#include "ImGui/imgui.h"
-#include "ImGui/imgui_impl_glfw.h"
-#include "ImGui/imgui_impl_opengl3.h"
-#include "ImGui/imgui_internal.h"
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+#include <imgui_internal.h>
 #include <iostream>
 #include <vector>
 #include <filesystem>
@@ -80,7 +82,7 @@ GLFWwindow* InitialiseOpenGL()
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(1);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	if (!gladLoadGL(glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialise GLAD" << std::endl;
 		glfwTerminate();
@@ -139,8 +141,8 @@ int main()
 
 	//Load shaders
 	bool shaderSuccess = false;
-	std::string vertexPath = std::filesystem::current_path().string() + "\\src\\Shaders\\vertexShader.txt";
-	std::string fragmentPath = std::filesystem::current_path().string() + "\\src\\Shaders\\fragmentShader.txt";
+	std::string vertexPath = std::filesystem::current_path().string() + "\\resources\\shaders\\vertex.txt";
+	std::string fragmentPath = std::filesystem::current_path().string() + "\\resources\\shaders\\fragment.txt";
 	Shader shaderProgram = ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), shaderSuccess);
 
 	//If shader compilation/linking failed

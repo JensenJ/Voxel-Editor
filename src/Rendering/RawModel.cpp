@@ -1,6 +1,6 @@
 #include "RawModel.h"
 #include <iostream>
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
 RawModel::RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indices)

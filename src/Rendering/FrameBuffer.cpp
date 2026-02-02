@@ -1,5 +1,5 @@
 #include "FrameBuffer.h"
-#include <glad\glad.h>
+#include <glad/gl.h>
 
 FrameBuffer::FrameBuffer(int width, int height)
 {
