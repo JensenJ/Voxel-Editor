@@ -1,5 +1,5 @@
 #include "InputManager.h"
-#include <GLFW\glfw3.h>
+#include <GLFW/glfw3.h>
 
 void InputManager::BindNewKey(int key, int action, int mods, std::function<void()> actionToExecute)
 {
