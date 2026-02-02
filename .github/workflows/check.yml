@@ -1,4 +1,4 @@
-name: check
+name: CMake Build
 
 on:
   push:
@@ -6,10 +6,24 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
 
     steps:
-    - uses: actions/checkout@v4
-    - uses: lukka/get-cmake@latest
-    - uses: lukka/run-cmake@v10
-    
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Configure CMake
+        run: cmake -S . -B build --log-level=VERBOSE -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release
