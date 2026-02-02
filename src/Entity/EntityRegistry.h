@@ -14,7 +14,7 @@ class EntityRegistry {
     // map which contains
     //	1. type of component, component* can be used with std::is_same with T
     //	2. list/vectorof components of this type, we can check if they belong to this entity using
-    //component->GetOwningEntityId()
+    // component->GetOwningEntityId()
     //  Problem is linear searching to get component, can get around using map but then not easy to
     //  batch call
 

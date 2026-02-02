@@ -17,6 +17,22 @@ jobs:
           clang-format --version
           clang-format --dry-run --Werror $(git ls-files 'src/*.cpp' 'src/*.h')
   
+  shader-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install glslangValidator
+        run: sudo apt-get update && sudo apt-get install -y glslang-tools
+
+      - name: Check GLSL Validator
+        run: glslangValidator --version
+
+      - name: Validate shaders
+        run: |
+          glslangValidator -G --glsl-version 410 resources/shaders/*
+
   build:
     runs-on: ${{ matrix.os }}
 
@@ -32,7 +48,7 @@ jobs:
       - name: Install dependencies (Windows)
         if: runner.os == 'Windows'
         run: |
-          choco install glslang llvm -y
+          choco install llvm -y
 
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
@@ -56,10 +72,6 @@ jobs:
 
       - name: Install Python dependencies
         run: pip install jinja2
-
-      - name: Validate shaders
-        run: |
-          glslangValidator -G --glsl-version 410 resources/shaders/*
 
       - name: Cache CMake dependencies
         uses: actions/cache@v4
