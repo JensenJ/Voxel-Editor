@@ -1,6 +1,7 @@
 name: CMake Build
 
 on:
+  workflow_dispatch:
   push:
   pull_request:
 
@@ -40,11 +41,19 @@ jobs:
       - name: Install Python dependencies
         run: pip install jinja2
 
+      - name: Cache CMake dependencies
+        uses: actions/cache@v4
+        with:
+          path: build/_deps
+          key: ${{ runner.os }}-deps-${{ hashFiles('CMakeLists.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-deps-
+
       - name: Configure CMake
-        run: cmake -S . -B build --log-level=VERBOSE -DCMAKE_BUILD_TYPE=Release
+        run: cmake -S . -B build -G Ninja --log-level=VERBOSE -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        run: cmake --build build --config Release
+        run: cmake --build build --parallel --config Release
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
