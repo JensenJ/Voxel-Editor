@@ -78,8 +78,6 @@ jobs:
         with:
           path: build/_deps
           key: ${{ runner.os }}-deps-${{ hashFiles('CMakeLists.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-deps-
 
       - name: Configure CMake
         run: >
