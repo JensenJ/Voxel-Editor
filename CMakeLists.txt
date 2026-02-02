@@ -17,7 +17,18 @@ option(ENABLE_CLANG_TIDY "Enable clang-tidy analysis" OFF)
 if (ENABLE_CLANG_TIDY AND NOT UNIX)
     find_program(CLANG_TIDY_EXE NAMES clang-tidy)
     if (CLANG_TIDY_EXE)
-        set(CMAKE_CXX_CLANG_TIDY ${CLANG_TIDY_EXE})
+        message(STATUS "clang-tidy found at ${CLANG_TIDY_EXE}")
+        set(PROJECT_SOURCES_DIR ${CMAKE_SOURCE_DIR}/src)
+        file(GLOB_RECURSE PROJECT_SOURCES
+            CONFIGURE_DEPENDS
+            ${PROJECT_SOURCES_DIR}/*.cpp
+            ${PROJECT_SOURCES_DIR}/*.h
+        )
+        foreach(_source ${PROJECT_SOURCES})
+            set_source_files_properties(${_source} PROPERTIES
+                CXX_CLANG_TIDY "${CLANG_TIDY_EXE}"
+            )
+        endforeach()
     else()
         message(WARNING "clang-tidy requested but not found")
 	endif()

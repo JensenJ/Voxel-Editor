@@ -31,7 +31,7 @@ jobs:
 
       - name: Validate shaders
         run: |
-          glslangValidator --target-env opengl --glsl-version 410 resources/shaders/*
+          glslangValidator --target-env opengl --glsl-version 430 resources/shaders/*
 
   build:
     runs-on: ${{ matrix.os }}
