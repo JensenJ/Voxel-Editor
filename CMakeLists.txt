@@ -66,7 +66,7 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(glad)
-glad_add_library(glad_gl_core_41 STATIC REPRODUCIBLE LOADER API gl:core=4.1)
+glad_add_library(glad_gl_core_43 STATIC REPRODUCIBLE LOADER API gl:core=4.3)
 
 #ImGUI
 FetchContent_Declare(
@@ -101,7 +101,7 @@ if(UNIX AND NOT APPLE)
 )
 endif()
 
-target_link_libraries(imgui PRIVATE glfw glad_gl_core_41)
+target_link_libraries(imgui PRIVATE glfw glad_gl_core_43)
 
 #OpenGL
 find_package(OpenGL REQUIRED)
@@ -128,7 +128,7 @@ endif()
 target_link_libraries(voxel_editor PRIVATE
     OpenGL::GL
     glfw
-    glad_gl_core_41
+    glad_gl_core_43
     glm::glm
     imgui
 )
