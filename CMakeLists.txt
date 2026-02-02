@@ -68,6 +68,16 @@ target_include_directories(imgui PUBLIC
     ${imgui_SOURCE_DIR}/backends
 )
 
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+	target_link_libraries(imgui PRIVATE
+		X11::X11
+		X11::Xrandr
+		X11::Xcursor
+		X11::Xi
+)
+endif()
+
 target_link_libraries(imgui PRIVATE glfw glad_gl_core_41)
 
 #OpenGL
@@ -82,8 +92,13 @@ file(GLOB_RECURSE PROJECT_SOURCES
 add_executable(voxel_editor ${PROJECT_SOURCES})
 
 if(UNIX AND NOT APPLE)
-    find_package(X11 REQUIRED)
-    target_link_libraries(voxel_editor PRIVATE X11::X11)
+    target_link_libraries(voxel_editor PRIVATE
+    X11::X11
+    X11::Xrandr
+    X11::Xcursor
+    X11::Xi
+)
+
 endif()
 
 #Link libs
