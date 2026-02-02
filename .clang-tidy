@@ -1,0 +1,20 @@
+Checks: >
+  -*,
+  bugprone-*,
+  performance-*,
+  readability-*,
+  modernize-*,
+  cppcoreguidelines-*,
+  clang-analyzer-*
+
+WarningsAsErrors: >
+  clang-analyzer-*,
+  bugprone-*
+
+HeaderFilterRegex: 'src/.*'
+
+AnalyzeTemporaryDtors: false
+
+CheckOptions:
+  - key: cppcoreguidelines-owning-memory.IgnoreSmartPointers
+    value: true

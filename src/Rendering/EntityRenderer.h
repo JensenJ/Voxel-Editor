@@ -2,9 +2,7 @@
 
 #include "RawModel.h"
 
-class EntityRenderer
-{
-public:
-	void Render(RawModel& modelToRender);
+class EntityRenderer {
+  public:
+    void Render(RawModel& modelToRender);
 };
-

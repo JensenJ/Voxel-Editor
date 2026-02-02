@@ -14,9 +14,8 @@ const float MOVEMENTSPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
-class CameraComponent : public Component
-{
-private:
+class CameraComponent : public Component {
+  private:
     // camera attributes
     glm::vec3 position;
     glm::vec3 front;
@@ -31,26 +30,28 @@ private:
     float mouseSensitivity;
     float zoom;
 
-public:
+  public:
     // constructor with vectors
-    CameraComponent(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float yaw = YAW, float pitch = PITCH,
-        float movementSpeed = MOVEMENTSPEED, float mouseSensitivity = SENSITIVITY, float zoom = ZOOM);
+    CameraComponent(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float yaw = YAW,
+                    float pitch = PITCH, float movementSpeed = MOVEMENTSPEED,
+                    float mouseSensitivity = SENSITIVITY, float zoom = ZOOM);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
 
     void ProcessInput(struct GLFWwindow* window);
 
-    // processes input received from a mouse input system. Expects the offset value in both the x and y direction.
+    // processes input received from a mouse input system. Expects the offset value in both the x
+    // and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
 
-    // processes input received from a mouse scroll-wheel event. Only requires input on the vertical wheel-axis
+    // processes input received from a mouse scroll-wheel event. Only requires input on the vertical
+    // wheel-axis
     void ProcessMouseScroll(float yoffset);
 
     float GetZoom();
 
-private:
+  private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
 };
-

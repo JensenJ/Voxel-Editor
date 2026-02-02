@@ -2,9 +2,8 @@
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 
-void EntityRenderer::Render(RawModel& modelToRender)
-{
-	glBindVertexArray(modelToRender.GetVAO());
-	glDrawElements(GL_TRIANGLES, modelToRender.GetVertexCount(), GL_UNSIGNED_INT, 0);
-	glBindVertexArray(0);
+void EntityRenderer::Render(RawModel& modelToRender) {
+    glBindVertexArray(modelToRender.GetVAO());
+    glDrawElements(GL_TRIANGLES, modelToRender.GetVertexCount(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }

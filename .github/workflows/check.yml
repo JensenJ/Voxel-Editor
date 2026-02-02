@@ -6,6 +6,17 @@ on:
   pull_request:
 
 jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check formatting
+        run: |
+          clang-format --version
+          clang-format --dry-run --Werror $(git ls-files 'src/*.cpp' 'src/*.h')
+  
   build:
     runs-on: ${{ matrix.os }}
 
@@ -17,6 +28,11 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Install dependencies (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          choco install glslang llvm -y
 
       - name: Install dependencies (Ubuntu)
         if: runner.os == 'Linux'
@@ -41,6 +57,10 @@ jobs:
       - name: Install Python dependencies
         run: pip install jinja2
 
+      - name: Validate shaders
+        run: |
+          glslangValidator -G --glsl-version 410 resources/shaders/*
+
       - name: Cache CMake dependencies
         uses: actions/cache@v4
         with:
@@ -50,7 +70,11 @@ jobs:
             ${{ runner.os }}-deps-
 
       - name: Configure CMake
-        run: cmake -S . -B build -G Ninja --log-level=VERBOSE -DCMAKE_BUILD_TYPE=Release
+        run: >
+         cmake -S . -B build -G Ninja
+         --log-level=VERBOSE 
+         -DCMAKE_BUILD_TYPE=Release
+         -DENABLE_CLANG_TIDY=ON
 
       - name: Build
         run: cmake --build build --parallel --config Release
