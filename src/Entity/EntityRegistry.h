@@ -36,8 +36,8 @@ public:
 		for (std::map<Component*, std::vector<Component*>>::iterator iter = componentRegistry.begin(); iter != componentRegistry.end(); ++iter)
 		{
 			//If this component is of type T
-			Component& comp = *iter->first;
-			if (typeid(comp).name() == typeid(T).name())
+			Component& c = *iter->first;
+			if (typeid(c).name() == typeid(T).name())
 			{
 				return true;
 			}
@@ -64,8 +64,8 @@ public:
 		for (std::map<Component*, std::vector<Component*>>::iterator iter = componentRegistry.begin(); iter != componentRegistry.end(); ++iter)
 		{
 			//if this is the component type we want
-			Component& comp = *iter->first;
-			if(typeid(comp).name() == typeid(T).name())
+			Component& c = *iter->first;
+			if(typeid(c).name() == typeid(T).name())
 			{
 				//Cast all elements of this array to type T and return it
 				return reinterpret_cast<std::vector<T*>&>(iter->second);
@@ -86,8 +86,8 @@ public:
 		for (std::map<Component*, std::vector<Component*>>::iterator iter = componentRegistry.begin(); iter != componentRegistry.end(); ++iter)
 		{
 			//If this component is of type T
-			Component& comp = *iter->first;
-			if (typeid(comp).name() == typeid(T).name())
+			Component& c = *iter->first;
+			if (typeid(c).name() == typeid(T).name())
 			{
 				//Add component to this vector and return the component
 				iter->second.push_back(comp);
