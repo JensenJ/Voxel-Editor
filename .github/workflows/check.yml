@@ -76,7 +76,11 @@ jobs:
       - name: Cache CMake dependencies
         uses: actions/cache@v4
         with:
-          path: build/_deps
+          path: | 
+            build/_deps
+            build/CMakeFiles/imgui.dir
+            build/CMakeFiles/glad_gl_core_*.dir
+            build/gladsources
           key: ${{ runner.os }}-deps-${{ hashFiles('CMakeLists.txt') }}
 
       - name: Configure CMake
