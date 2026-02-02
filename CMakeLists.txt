@@ -81,6 +81,11 @@ file(GLOB_RECURSE PROJECT_SOURCES
 
 add_executable(voxel_editor ${PROJECT_SOURCES})
 
+if(UNIX AND NOT APPLE)
+    find_package(X11 REQUIRED)
+    target_link_libraries(voxel_editor PRIVATE X11::X11)
+endif()
+
 #Link libs
 target_link_libraries(voxel_editor PRIVATE
     OpenGL::GL
