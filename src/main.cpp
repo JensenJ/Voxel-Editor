@@ -101,16 +101,21 @@ GLFWwindow* InitialiseOpenGL() {
 }
 
 void InitialiseImGui(GLFWwindow* window) {
+    // TODO: Load from settings, if it doesn't exist, try get from OS scale
+    float uiScale = 1.25f;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
+    std::string fontPath =
+        std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";
+    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f * uiScale);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
-    // Setup Dear ImGui style
     ImGui::StyleColorsDark();
+    ImGui::GetStyle().ScaleAllSizes(uiScale);
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look
     // identical to regular ones.
@@ -354,9 +359,7 @@ int main() {
 // Render ImGui UI
 void RenderUI() {
     static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
-
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
     ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_FirstUseEver);
@@ -371,7 +374,7 @@ void RenderUI() {
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
     ImGui::Begin("Dockspace", nullptr, windowFlags);
-    ImGui::PopStyleVar(2);
+    ImGui::PopStyleVar(3);
 
     // Create dockspace
     ImGuiIO& io = ImGui::GetIO();
@@ -551,8 +554,6 @@ void RenderUI() {
             }
         }
         ImGui::End();
-
-        ImGui::ShowDemoWindow();
 
         // Render ImGui
         ImGui::Render();
