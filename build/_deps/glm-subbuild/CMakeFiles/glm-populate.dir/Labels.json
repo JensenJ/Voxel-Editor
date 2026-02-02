@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/glm-populate"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/225c2239660b00f165fc6903fb6a3255/glm-populate.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/c1aceff12fb20eeb36aa5053929e82d6/glm-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/83a4c6d7588df0cc3b0999a26df80b35/glm-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glm-populate"
+		],
+		"name" : "glm-populate"
+	}
+}

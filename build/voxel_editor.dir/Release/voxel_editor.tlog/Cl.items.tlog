@@ -1,0 +1,12 @@
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Entity\Components\CameraComponent.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\CameraComponent.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Entity\Components\Component.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\Component.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Entity\Components\MeshRendererComponent.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\MeshRendererComponent.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Entity\Components\TransformComponent.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\TransformComponent.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Entity\Entity.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\Entity.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Entity\EntityRegistry.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\EntityRegistry.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\InputManager.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\InputManager.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Rendering\EntityRenderer.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\EntityRenderer.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Rendering\FrameBuffer.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\FrameBuffer.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Rendering\RawModel.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\RawModel.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\Rendering\ShaderLoader.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\ShaderLoader.obj
+C:\Users\jense\Documents\Coding\Voxel Editor\src\main.cpp;C:\Users\jense\Documents\Coding\Voxel Editor\build\voxel_editor.dir\Release\main.obj

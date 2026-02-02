@@ -1,0 +1,14 @@
+# Target labels
+ imgui-populate
+# Source files and their labels
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/imgui-populate
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/88523e758c9222b8ff8b21d0c462ca36/imgui-populate.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/3aef0336de6278b03e468d9255b226a2/imgui-populate-complete.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-build.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-configure.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-download.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-install.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-mkdir.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-patch.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-test.rule
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/imgui-subbuild/CMakeFiles/78b0a8466afc07f1525fc26fe42b9b55/imgui-populate-update.rule

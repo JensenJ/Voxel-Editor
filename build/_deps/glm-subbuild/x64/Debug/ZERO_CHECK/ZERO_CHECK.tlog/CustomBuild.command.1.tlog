@@ -1,0 +1,10 @@
+^C:\USERS\JENSE\DOCUMENTS\CODING\VOXEL EDITOR\BUILD\_DEPS\GLM-SUBBUILD\CMAKEFILES\225C2239660B00F165FC6903FB6A3255\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" "-SC:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild" "-BC:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild" --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/glm-populate.slnx"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

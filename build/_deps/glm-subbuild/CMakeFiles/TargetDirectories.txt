@@ -1,0 +1,3 @@
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/glm-populate.dir
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/ALL_BUILD.dir
+C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glm-subbuild/CMakeFiles/ZERO_CHECK.dir

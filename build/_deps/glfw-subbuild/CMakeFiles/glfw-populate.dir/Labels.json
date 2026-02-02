@@ -1,0 +1,46 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/glfw-populate"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/99b61623103a382edd00141983d33ed2/glfw-populate.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/c54da4283f29cb1dac118bbbf4e5fbc5/glfw-populate-complete.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-build.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-configure.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-download.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-install.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-mkdir.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-patch.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-test.rule"
+		},
+		{
+			"file" : "C:/Users/jense/Documents/Coding/Voxel Editor/build/_deps/glfw-subbuild/CMakeFiles/e31d3c0c018777fbd1adfd1420fb1b89/glfw-populate-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"glfw-populate"
+		],
+		"name" : "glfw-populate"
+	}
+}
