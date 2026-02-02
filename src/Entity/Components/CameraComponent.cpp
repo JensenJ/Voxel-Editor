@@ -1,6 +1,6 @@
 #include "CameraComponent.h"
 #include <iostream>
-#include <GLFW\glfw3.h>
+#include <GLFW/glfw3.h>
 #include "../../InputManager.h"
 
 CameraComponent::CameraComponent(glm::vec3 position, float yaw, float pitch, float movementSpeed, float mouseSensitivity, float zoom)
