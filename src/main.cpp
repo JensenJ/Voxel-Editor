@@ -34,7 +34,7 @@ float lastFrame = 0.0f;
 bool mouseLocked = true;
 bool wireframeMode = false;
 
-const char* glsl_version = "#version 410";
+const char* glsl_version = "#version 430";
 
 Entity* camera;
 float lastMouseX = screenWidth / 2.0f;
@@ -66,7 +66,7 @@ FrameBuffer* sceneBuffer;
 GLFWwindow* InitialiseOpenGL() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
