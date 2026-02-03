@@ -98,7 +98,7 @@ void MainUI::RenderUI() {
     {
         ImGui::BeginChild("View");
         application->SetSceneViewportWidth((int)ImGui::GetContentRegionAvail().x);
-        application->SetSceneViewportWidth((int)ImGui::GetContentRegionAvail().y);
+        application->SetSceneViewportHeight((int)ImGui::GetContentRegionAvail().y);
 
 // Disable a warning which cant be resolved
 #pragma warning(push)

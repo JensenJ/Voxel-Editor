@@ -42,6 +42,11 @@ void Application::Shutdown() {
 
     glfwDestroyWindow(window);
     glfwTerminate();
+    delete this->sceneBuffer;
+    this->sceneBuffer = nullptr;
+
+    delete this->activeShaderProgram;
+    this->activeShaderProgram = nullptr;
 }
 
 void Application::InitialiseOpenGl() {
@@ -122,7 +127,7 @@ bool Application::LoadShaders() {
         std::filesystem::current_path().string() + "\\resources\\shaders\\vertex.vert";
     std::string fragmentPath =
         std::filesystem::current_path().string() + "\\resources\\shaders\\fragment.frag";
-    Shader shaderProgram =
+    Shader shader =
         ShaderLoader::CreateShaderProgram(vertexPath.c_str(), fragmentPath.c_str(), shaderSuccess);
 
     // If shader compilation/linking failed
@@ -131,8 +136,9 @@ bool Application::LoadShaders() {
         glfwTerminate();
         return false;
     }
+    this->activeShaderProgram = new Shader(shader);
+
     std::cout << "Created Shaders" << std::endl;
-    this->activeShaderProgram = &shaderProgram;
     return true;
 }
 

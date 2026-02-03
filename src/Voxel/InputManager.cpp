@@ -78,6 +78,7 @@ bool InputManager::IsKeyDown(struct GLFWwindow* window, int key) {
 
 void InputManager::Cleanup() { actionKeys.clear(); }
 
+// TODO: clamp mouse cursor in viewport when cursor is disabled
 void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposIn) {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
