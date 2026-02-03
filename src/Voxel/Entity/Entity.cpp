@@ -1,6 +1,6 @@
 #include "Entity.h"
 #include <iostream>
-#include "Components/Component.h"
+#include <Voxel/Entity/Components/Component.h>
 
 Entity::Entity(unsigned int entityID, EntityRegistry* eRegistry, std::string entityName) {
     this->entityID = entityID;

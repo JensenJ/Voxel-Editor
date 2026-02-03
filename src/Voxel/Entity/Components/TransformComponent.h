@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/glm.hpp>
-#include "Component.h"
+#include <Voxel/pch.h>
+#include <Voxel/Entity/Components/Component.h>
 
 class TransformComponent : public Component {
   public:

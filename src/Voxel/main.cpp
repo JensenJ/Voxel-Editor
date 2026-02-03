@@ -1,26 +1,17 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
+#pragma once
 
-#include <filesystem>
-#include <iostream>
-#include <set>
-#include <vector>
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#include <Voxel/pch.h>
 #include <glm/gtc/type_ptr.hpp>
-#include "Application.h"
-#include "Entity/Components/CameraComponent.h"
-#include "Entity/Components/Component.h"
-#include "Entity/Components/MeshRendererComponent.h"
-#include "Entity/Components/TransformComponent.h"
-#include "Entity/Entity.h"
-#include "Entity/EntityRegistry.h"
-#include "InputManager.h"
-#include "Rendering/EntityRenderer.h"
-#include "Rendering/FrameBuffer.h"
-#include "Rendering/RawModel.h"
-#include "Rendering/ShaderLoader.h"
+#include <Voxel/Camera.h>
+#include <Voxel/Entity/Components/Component.h>
+#include <Voxel/Entity/Components/MeshRendererComponent.h>
+#include <Voxel/Entity/Components/TransformComponent.h>
+#include <Voxel/Entity/Entity.h>
+#include <Voxel/Rendering/EntityRenderer.h>
+#include <Voxel/Rendering/FrameBuffer.h>
+#include <Voxel/Rendering/RawModel.h>
+#include <Voxel/Rendering/ShaderLoader.h>
 
 bool mouseLocked = true;
 bool wireframeMode = false;
@@ -84,17 +75,6 @@ int main() {
     inputManager->BindNewKey(GLFW_KEY_9, GLFW_PRESS, 0, ToggleWireframeMode);
     inputManager->BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
 
-    // Camera settings
-    const float YAW = -90.0f;
-    const float PITCH = 0.0f;
-    const float MOVEMENTSPEED = 5.0f;
-    const float SENSITIVITY = 0.1f;
-    const float ZOOM = 45.0f;
-
-    entityRegistry->camera = entityRegistry->CreateEntity("Camera");
-    entityRegistry->camera->AddComponent<CameraComponent>(glm::vec3(0.0f, 0.0f, 0.0f), YAW, PITCH,
-                                                          MOVEMENTSPEED, SENSITIVITY, ZOOM);
-
     // Create entities
     for (int x = 0; x < 3; x++) {
         for (int y = 0; y < 2; y++) {
@@ -121,19 +101,19 @@ int main() {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
 
-        CameraComponent* camComponent = entityRegistry->camera->GetComponent<CameraComponent>();
-        if (entityRegistry->camera == nullptr) {
+        Camera* camera = application->GetCamera();
+        if (camera == nullptr) {
             glfwTerminate();
-            std::cout << "Failed to get camera component" << std::endl;
+            std::cout << "Failed to get camera" << std::endl;
             return -3;
         };
 
         // Update all components in the entity registry
         entityRegistry->UpdateAllComponents(application->DeltaTime());
-        camComponent->ProcessInput(application->GetWindow());
+        camera->ProcessInput(application->GetWindow());
 
-        glm::mat4 view = camComponent->GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camComponent->GetZoom()),
+        glm::mat4 view = camera->GetViewMatrix();
+        glm::mat4 projection = glm::perspective(glm::radians(camera->GetZoom()),
                                                 (float)application->GetSceneViewportWidth() /
                                                     (float)application->GetSceneViewportHeight(),
                                                 0.1f, 100.0f);
@@ -190,7 +170,6 @@ void ToggleMouseCursor() {
     if (application == nullptr) {
         return;
     }
-
     application->SetMouseLocked(!application->IsMouseLocked());
 }
 

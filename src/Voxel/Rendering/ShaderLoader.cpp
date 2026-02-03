@@ -1,10 +1,5 @@
 #include "ShaderLoader.h"
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-
-#include <fstream>
-#include <iostream>
-#include <string>
+#include <Voxel/pch.h>
 
 // Load a shader from a file
 std::string ShaderLoader::LoadShader(const char* filePath) {

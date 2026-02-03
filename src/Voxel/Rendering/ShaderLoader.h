@@ -1,6 +1,5 @@
 #pragma once
-#include <string>
-#include <glm/glm.hpp>
+#include <Voxel/pch.h>
 
 class Shader {
   public:

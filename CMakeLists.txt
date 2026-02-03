@@ -112,6 +112,14 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
 
 add_executable(voxel_editor ${PROJECT_SOURCES})
 
+target_include_directories(voxel_editor PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/
+)
+
+target_precompile_headers(voxel_editor PRIVATE
+    ${CMAKE_SOURCE_DIR}/src/Voxel/pch.h
+)
+
 if(UNIX AND NOT APPLE)
     target_link_libraries(voxel_editor PRIVATE
     X11::X11
@@ -143,4 +151,13 @@ target_compile_definitions(voxel_editor PRIVATE GLM_ENABLE_EXPERIMENTAL)
 
 if (WIN32)
     target_compile_definitions(voxel_editor PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
+endif()
+
+if (MSVC)
+    # Set the startup project for Visual Studio
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT voxel_editor)
+
+    set_target_properties(voxel_editor PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+    )
 endif()

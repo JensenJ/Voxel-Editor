@@ -1,11 +1,7 @@
 #pragma once
 
-#include <iostream>
-#include <map>
-#include <set>
-#include <utility>
-#include <vector>
-#include "Components/Component.h"
+#include <Voxel/pch.h>
+#include <Voxel/Entity/Components/Component.h>
 
 class EntityRegistry {
   public:
@@ -25,7 +21,6 @@ class EntityRegistry {
     static EntityRegistry* GetInstance();
 
     std::set<class Entity*> selectedEntities = std::set<class Entity*>();
-    class Entity* camera;
 
     class Entity* CreateEntity(std::string entityName = "Entity");
 

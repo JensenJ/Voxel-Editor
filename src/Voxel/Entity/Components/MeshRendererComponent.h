@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/glm.hpp>
-#include "../../Rendering/RawModel.h"
+#include <Voxel/pch.h>
+#include <Voxel/Rendering/RawModel.h>
 #include "Component.h"
 
 class MeshRendererComponent : public Component {

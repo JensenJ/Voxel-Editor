@@ -1,16 +1,12 @@
 #pragma once
-#include <functional>
-#include <iostream>
-#include <map>
-#include <utility>
-#include <vector>
+#include <Voxel/pch.h>
 
 class InputManager {
   public:
     static InputManager* GetInstance();
 
     // For action events (1 time key presses or releases)
-    void BindNewKey(int key, int action, int mods, std::function<void()> actionToExecute);
+    void BindNewKey(int key, int action, int mods, class std::function<void()> actionToExecute);
 
     // Callback to link to GLFW key callback function
     void KeyCallback(struct GLFWwindow* window, int key, int scancode, int action, int mods);
@@ -18,6 +14,10 @@ class InputManager {
     static bool IsKeyDown(struct GLFWwindow* window, int key);
 
     void Cleanup();
+
+    static void RawMouseInput(struct GLFWwindow* window, double xpos, double ypos);
+    static void RawScrollInput(struct GLFWwindow* window, double xoffset, double yoffset);
+    static void RawKeyInput(struct GLFWwindow* window, int key, int scancode, int action, int mods);
 
   private:
     InputManager() = default;
@@ -28,4 +28,8 @@ class InputManager {
         actionKeys;
 
     static InputManager* instance;
+
+    inline static float lastMouseX = 0;
+    inline static float lastMouseY = 0;
+    inline static bool firstMouse = true;
 };

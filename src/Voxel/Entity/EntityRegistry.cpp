@@ -1,5 +1,5 @@
 #include "EntityRegistry.h"
-#include "Entity.h"
+#include <Voxel/Entity/Entity.h>
 
 EntityRegistry* EntityRegistry::instance = nullptr;
 

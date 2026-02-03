@@ -1,5 +1,5 @@
 #include "FrameBuffer.h"
-#include <glad/gl.h>
+#include <Voxel/pch.h>
 
 FrameBuffer::FrameBuffer(int width, int height) {
     // Create frame buffer and bind it

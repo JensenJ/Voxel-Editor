@@ -1,5 +1,6 @@
 #include "InputManager.h"
-#include <GLFW/glfw3.h>
+#include <Voxel/pch.h>
+#include <Voxel/Camera.h>
 
 InputManager* InputManager::instance = nullptr;
 
@@ -76,3 +77,56 @@ bool InputManager::IsKeyDown(struct GLFWwindow* window, int key) {
 }
 
 void InputManager::Cleanup() { actionKeys.clear(); }
+
+void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposIn) {
+    Application* application = Application::GetInstance();
+    if (application == nullptr) {
+        return;
+    }
+
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse) {
+        lastMouseX = xpos;
+        lastMouseY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastMouseX;
+    float yoffset = lastMouseY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastMouseX = xpos;
+    lastMouseY = ypos;
+
+    // Only process the mouse moving if the mouse is locked to the viewport
+    if (application->IsMouseLocked() == true) {
+        Camera* cam = application->GetCamera();
+        if (cam == nullptr) {
+            return;
+        }
+        cam->ProcessMouseMovement(xoffset, yoffset);
+    }
+}
+
+void InputManager::RawKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    InputManager* manager = InputManager::GetInstance();
+    if (manager == nullptr) {
+        return;
+    }
+
+    manager->KeyCallback(window, key, scancode, action, mods);
+}
+
+void InputManager::RawScrollInput(GLFWwindow* window, double xoffset, double yoffset) {
+    Application* application = Application::GetInstance();
+    if (application == nullptr) {
+        return;
+    }
+
+    Camera* cam = application->GetCamera();
+    if (cam == nullptr) {
+        return;
+    }
+    cam->ProcessMouseScroll(static_cast<float>(yoffset));
+}

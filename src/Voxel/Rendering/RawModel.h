@@ -1,7 +1,5 @@
 #pragma once
-
-#include <vector>
-#include <glm/glm.hpp>
+#include <Voxel/pch.h>
 
 struct Vertex {
     Vertex(glm::vec3 position, glm::vec3 colour) {

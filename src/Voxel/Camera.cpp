@@ -1,10 +1,8 @@
-#include "CameraComponent.h"
-#include <iostream>
-#include <GLFW/glfw3.h>
-#include "../../InputManager.h"
+#include "Camera.h"
+#include <Voxel/pch.h>
 
-CameraComponent::CameraComponent(glm::vec3 position, float yaw, float pitch, float movementSpeed,
-                                 float mouseSensitivity, float zoom) {
+Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
+               float mouseSensitivity, float zoom) {
     this->up = glm::vec3(0.0f, 1.0f, 0.0f);
     this->front = glm::vec3(0.0f, 0.0f, -1.0f);
     this->position = position;
@@ -17,9 +15,17 @@ CameraComponent::CameraComponent(glm::vec3 position, float yaw, float pitch, flo
     UpdateCameraVectors();
 }
 
-void CameraComponent::ProcessInput(GLFWwindow* window) {
-    float velocity = movementSpeed * deltaTime;
+void Camera::ProcessInput(GLFWwindow* window) {
+    Application* application = Application::GetInstance();
+    if (application == nullptr) {
+        return;
+    }
+    float velocity = movementSpeed * application->DeltaTime();
 
+    // std::cout << "Processing input" << std::endl;
+
+    // std::cout << "position: " << position.x << "," << position.y << ", " << position.z <<
+    // std::endl;
     if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
         velocity = velocity * 5;
     if (InputManager::IsKeyDown(window, GLFW_KEY_W))
@@ -36,7 +42,7 @@ void CameraComponent::ProcessInput(GLFWwindow* window) {
         position += up * velocity;
 }
 
-void CameraComponent::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
+void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
     xoffset *= mouseSensitivity;
     yoffset *= mouseSensitivity;
 
@@ -54,7 +60,7 @@ void CameraComponent::ProcessMouseMovement(float xoffset, float yoffset, GLboole
     UpdateCameraVectors();
 }
 
-void CameraComponent::UpdateCameraVectors() {
+void Camera::UpdateCameraVectors() {
     // calculate the new Front vector
     glm::vec3 localFront;
     localFront.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
@@ -68,7 +74,7 @@ void CameraComponent::UpdateCameraVectors() {
     up = glm::normalize(glm::cross(right, front));
 }
 
-void CameraComponent::ProcessMouseScroll(float yoffset) {
+void Camera::ProcessMouseScroll(float yoffset) {
     zoom -= (float)yoffset;
     if (zoom < 1.0f)
         zoom = 1.0f;
@@ -76,6 +82,6 @@ void CameraComponent::ProcessMouseScroll(float yoffset) {
         zoom = 45.0f;
 }
 
-float CameraComponent::GetZoom() { return zoom; }
+float Camera::GetZoom() { return zoom; }
 
-glm::mat4 CameraComponent::GetViewMatrix() { return glm::lookAt(position, position + front, up); }
+glm::mat4 Camera::GetViewMatrix() { return glm::lookAt(position, position + front, up); }

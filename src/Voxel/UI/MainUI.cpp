@@ -1,14 +1,11 @@
 #include "MainUI.h"
-#include <imgui.h>
+#include <Voxel/pch.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-#include "../Application.h"
-#include "../Entity/Entity.h"
-#include "../Entity/EntityRegistry.h"
-#include "../Rendering/FrameBuffer.h"
+#include <Voxel/Entity/Entity.h>
+#include <Voxel/Entity/EntityRegistry.h>
+#include <Voxel/Rendering/FrameBuffer.h>
 
 // Render ImGui UI
 void MainUI::RenderUI() {

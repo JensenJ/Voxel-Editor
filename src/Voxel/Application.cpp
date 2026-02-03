@@ -1,22 +1,14 @@
 #include "Application.h"
-#include <filesystem>
-#include <iostream>
-#include <set>
-#include <string>
-#include <vector>
-#include <imgui.h>
+#include <Voxel/pch.h>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
-#include "Entity/Components/CameraComponent.h"
-#include "Entity/Entity.h"
-#include "Entity/EntityRegistry.h"
-#include "InputManager.h"
-#include "Rendering/FrameBuffer.h"
-#include "Rendering/ShaderLoader.h"
-#include "UI/MainUI.h"
+#include <Voxel/Camera.h>
+#include <Voxel/Entity/Entity.h>
+#include <Voxel/Entity/EntityRegistry.h>
+#include <Voxel/Rendering/FrameBuffer.h>
+#include <Voxel/Rendering/ShaderLoader.h>
+#include <Voxel/UI/MainUI.h>
 
 Application* Application::instance = nullptr;
 
@@ -37,6 +29,7 @@ bool Application::Initialise() {
         return false;
     }
     InitialiseFrameBuffer();
+    SetupCamera();
     return true;
 }
 
@@ -82,11 +75,11 @@ void Application::InitialiseOpenGl() {
     glfwMaximizeWindow(window);
 
     glViewport(0, 0, screenWidth, screenHeight);
-    glfwSetFramebufferSizeCallback(window, Application::framebuffer_size_callback);
-    glfwSetCursorPosCallback(window, Application::mouse_callback);
-    glfwSetScrollCallback(window, Application::scroll_callback);
-    glfwSetKeyCallback(window, Application::key_callback);
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetFramebufferSizeCallback(window, Application::UpdateFrameBufferSize);
+    glfwSetCursorPosCallback(window, InputManager::RawMouseInput);
+    glfwSetScrollCallback(window, InputManager::RawScrollInput);
+    glfwSetKeyCallback(window, InputManager::RawKeyInput);
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     this->sceneViewportWidth = screenWidth;
     this->sceneViewportHeight = screenHeight;
     this->window = window;
@@ -153,6 +146,8 @@ void Application::InitialiseFrameBuffer() {
     this->sceneBuffer = new FrameBuffer(sceneViewportWidth, sceneViewportHeight);
 }
 
+void Application::SetupCamera() { this->camera = new Camera(); }
+
 bool Application::ShouldStayOpen() { return !glfwWindowShouldClose(window); }
 
 void Application::StartFrame() {
@@ -218,81 +213,26 @@ int Application::GetSceneViewportWidth() { return this->sceneViewportWidth; }
 
 int Application::GetSceneViewportHeight() { return this->sceneViewportHeight; }
 
+Camera* Application::GetCamera() { return this->camera; }
+
 void Application::SetSceneViewportWidth(int width) { this->sceneViewportWidth = width; }
 
 void Application::SetSceneViewportHeight(int height) { this->sceneViewportHeight = height; }
 
-void Application::SetMouseLocked(bool locked) {
-    if (locked) {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        this->mouseLocked = false;
+void Application::SetMouseLocked(bool lock) {
+    if (lock) {
+        glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     } else {
-        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        this->mouseLocked = true;
+        glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }
 }
 
-bool Application::IsMouseLocked() { return this->mouseLocked; }
-
-void Application::mouse_callback(GLFWwindow* window, double xposIn, double yposIn) {
-    Application* application = Application::GetInstance();
-    if (application == nullptr) {
-        return;
-    }
-
-    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
-    if (entityRegistry == nullptr) {
-        return;
-    }
-
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse) {
-        lastMouseX = xpos;
-        lastMouseY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastMouseX;
-    float yoffset = lastMouseY - ypos; // reversed since y-coordinates go from bottom to top
-
-    lastMouseX = xpos;
-    lastMouseY = ypos;
-
-    // Only process the mouse moving if the mouse is locked to the viewport
-    if (application->IsMouseLocked() == true) {
-        CameraComponent* camComp = entityRegistry->camera->GetComponent<CameraComponent>();
-        if (camComp == nullptr) {
-            return;
-        }
-        camComp->ProcessMouseMovement(xoffset, yoffset);
-    }
+bool Application::IsMouseLocked() {
+    int mouseLock = glfwGetInputMode(this->window, GLFW_CURSOR);
+    return mouseLock == GLFW_CURSOR_DISABLED;
 }
 
-void Application::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    InputManager* manager = InputManager::GetInstance();
-    if (manager == nullptr) {
-        return;
-    }
-
-    manager->KeyCallback(window, key, scancode, action, mods);
-}
-
-void Application::scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
-    if (entityRegistry == nullptr) {
-        return;
-    }
-
-    CameraComponent* camComp = entityRegistry->camera->GetComponent<CameraComponent>();
-    if (camComp == nullptr) {
-        return;
-    }
-    camComp->ProcessMouseScroll(static_cast<float>(yoffset));
-}
-
-void Application::framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+void Application::UpdateFrameBufferSize(GLFWwindow* window, int width, int height) {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
         return;

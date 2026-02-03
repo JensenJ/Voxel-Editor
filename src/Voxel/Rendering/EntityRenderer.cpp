@@ -1,6 +1,5 @@
 #include "EntityRenderer.h"
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include <Voxel/pch.h>
 
 void EntityRenderer::Render(RawModel& modelToRender) {
     glBindVertexArray(modelToRender.GetVAO());

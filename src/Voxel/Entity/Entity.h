@@ -1,9 +1,9 @@
 #pragma once
 #include <iostream>
 #include <type_traits>
-#include "Components/Component.h"
-#include "Components/TransformComponent.h"
-#include "EntityRegistry.h"
+#include <Voxel/Entity/Components/Component.h>
+#include <Voxel/Entity/Components/TransformComponent.h>
+#include <Voxel/Entity/EntityRegistry.h>
 
 class Entity {
   public:

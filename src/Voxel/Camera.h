@@ -1,11 +1,5 @@
 #pragma once
-#include "Component.h"
-
-#include <glad/gl.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
-#include <vector>
+#include <Voxel/pch.h>
 
 // Default camera values
 const float YAW = -90.0f;
@@ -14,7 +8,7 @@ const float MOVEMENTSPEED = 2.5f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
-class CameraComponent : public Component {
+class Camera {
   private:
     // camera attributes
     glm::vec3 position;
@@ -32,9 +26,9 @@ class CameraComponent : public Component {
 
   public:
     // constructor with vectors
-    CameraComponent(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float yaw = YAW,
-                    float pitch = PITCH, float movementSpeed = MOVEMENTSPEED,
-                    float mouseSensitivity = SENSITIVITY, float zoom = ZOOM);
+    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float yaw = YAW, float pitch = PITCH,
+           float movementSpeed = MOVEMENTSPEED, float mouseSensitivity = SENSITIVITY,
+           float zoom = ZOOM);
 
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();

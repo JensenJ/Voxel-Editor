@@ -1,7 +1,5 @@
 #include "TransformComponent.h"
-#include <iostream>
-#include <imgui.h>
-#include <glm/gtc/matrix_transform.hpp>
+#include <Voxel/pch.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
 

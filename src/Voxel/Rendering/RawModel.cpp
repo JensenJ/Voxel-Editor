@@ -1,7 +1,5 @@
 #include "RawModel.h"
-#include <iostream>
-#include <glad/gl.h>
-#include <GLFW/glfw3.h>
+#include <Voxel/pch.h>
 
 RawModel::RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
     this->vertices = vertices;
