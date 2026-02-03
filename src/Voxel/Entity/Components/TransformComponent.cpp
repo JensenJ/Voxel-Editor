@@ -24,11 +24,33 @@ TransformComponent::TransformComponent(glm::vec3 position, glm::vec3 rotation, g
     shouldRenderProperties = true;
 }
 
-// Imgui code for when this component is rendered in the properties panel
+// TODO: Tidy this up further
 void TransformComponent::RenderPropertiesPanel() {
-    ImGui::InputFloat("X", &transform[3].x);
-    ImGui::InputFloat("Y", &transform[3].y);
-    ImGui::InputFloat("Z", &transform[3].z);
+    ImGui::Text("Position");
+    ImGui::Spacing();
+
+    ImGui::PushID("Position");
+
+    const float labelWidth = 16.0f;
+    const float dragSpeed = 1.0f;
+
+    auto drawAxis = [&](const char* label, ImVec4 color, float& value) {
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        ImGui::Text(label);
+        ImGui::PopStyleColor();
+
+        ImGui::SameLine();
+        ImGui::PushItemWidth(-1);
+        ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, dragSpeed, 0.0f, 0.0f,
+                         "%.2f");
+        ImGui::PopItemWidth();
+    };
+
+    drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), transform[3].x);
+    drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), transform[3].y);
+    drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), transform[3].z);
+
+    ImGui::PopID();
 }
 
 glm::vec3 TransformComponent::GetPosition() { return transform[3]; }

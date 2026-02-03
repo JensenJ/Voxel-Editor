@@ -57,15 +57,16 @@ void MainUI::Initialise() {
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
+    SetStyle();
+
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(application->GetWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 430");
-    SetStyle();
     LOG_TRACE("Initialised ImGui");
 }
 
 void MainUI::SetupFrame() {
-    static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
+    static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
@@ -86,22 +87,16 @@ void MainUI::SetupFrame() {
     // Create dockspace
     ImGuiIO& io = ImGui::GetIO();
     ImGuiID dockspace_id = ImGui::GetID("Dockspace");
-    // check if this layout exists (if defined in imgui.ini)
     static bool firstTimeLoading = ImGui::DockBuilderGetNode(dockspace_id) == nullptr;
-    // Create new dockspace with this id (loads layout if one exists)
     ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspaceFlags);
 
-    // Specify layout of viewports if this is the first time loading
     if (firstTimeLoading) {
-        // Prevent layout being reapplied next frame
         firstTimeLoading = false;
 
-        // Clear previous dockspace layout
         ImGui::DockBuilderRemoveNode(dockspace_id);
         ImGui::DockBuilderAddNode(dockspace_id, dockspaceFlags | ImGuiDockNodeFlags_DockSpace);
         ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
 
-        // Create new node on the right of this dockspace
         auto dockIdRight =
             ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, nullptr, &dockspace_id);
         auto dockIdRightTop =
@@ -117,9 +112,72 @@ void MainUI::SetupFrame() {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
 }
 
-void MainUI::SetStyle() {}
+void MainUI::SetStyle() {
+    ImGuiStyle& style = ImGui::GetStyle();
+    ImVec4* colors = style.Colors;
+
+    // Base
+    colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
+    colors[ImGuiCol_ChildBg] = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
+    colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
+
+    // Borders
+    colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 0.60f);
+    colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
+
+    // Text
+    colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
+    colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
+
+    // Headers (Tree, Selectables)
+    colors[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+    colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.30f, 0.34f, 1.00f);
+    colors[ImGuiCol_HeaderActive] = ImVec4(0.30f, 0.35f, 0.40f, 1.00f);
+
+    // Buttons
+    colors[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+    colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.30f, 0.34f, 1.00f);
+    colors[ImGuiCol_ButtonActive] = ImVec4(0.30f, 0.35f, 0.40f, 1.00f);
+
+    // Frame BG (sliders, inputs)
+    colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.20f, 0.24f, 1.00f);
+    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.18f, 0.22f, 0.26f, 1.00f);
+    colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+
+    // Tabs
+    colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+    colors[ImGuiCol_TabHovered] = ImVec4(0.38f, 0.43f, 0.47f, 1.00f);
+    colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.32f, 0.36f, 1.00f);
+    colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
+    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
+
+    // Title
+    colors[ImGuiCol_TitleBg] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+    colors[ImGuiCol_TitleBgActive] = ImVec4(0.10f, 0.12f, 0.14f, 1.00f);
+    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
+
+    // Scrollbar
+    colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
+    colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
+    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
+
+    style.WindowRounding = 6.0f;
+    style.ChildRounding = 6.0f;
+    style.FrameRounding = 5.0f;
+    style.PopupRounding = 5.0f;
+    style.ScrollbarRounding = 6.0f;
+    style.GrabRounding = 5.0f;
+    style.TabRounding = 5.0f;
+
+    style.FramePadding = ImVec2(8, 4);
+    style.ItemSpacing = ImVec2(8, 6);
+    style.ItemInnerSpacing = ImVec2(6, 4);
+    style.IndentSpacing = 18.0f;
+}
 
 void MainUI::RenderMenuBar() {
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 6));
     if (ImGui::BeginMenuBar()) {
         // File menu
         if (ImGui::BeginMenu("File")) {
@@ -140,6 +198,7 @@ void MainUI::RenderMenuBar() {
 
         ImGui::EndMenuBar();
     }
+    ImGui::PopStyleVar();
 }
 
 void MainUI::RenderHierarchyPanel() {
@@ -147,15 +206,17 @@ void MainUI::RenderHierarchyPanel() {
     if (entityRegistry == nullptr) {
         return;
     }
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
     ImGui::Begin("Hierarchy");
     {
         // Get all entities and list them
         std::map<unsigned int, Entity*> entities = entityRegistry->GetAllEntities();
 
         static ImGuiTableFlags entityHierarchyFlags =
-            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Borders |
-            ImGuiTableFlags_Resizable | ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable |
+            ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));
         if (ImGui::BeginTable("Hierarchy Entity Table", 2, entityHierarchyFlags)) {
             // Print table headers
             ImGui::TableSetupColumn("Entity ID", ImGuiTableColumnFlags_WidthFixed);
@@ -224,58 +285,65 @@ void MainUI::RenderHierarchyPanel() {
                 ImGui::Text("%s", iter->second->GetEntityName().c_str());
             }
             ImGui::EndTable();
+            ImGui::PopStyleVar();
         }
         ImGui::End();
+        ImGui::PopStyleVar();
     }
 }
 
 void MainUI::RenderObjectPropertiesPanel() {
-    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
-    if (entityRegistry == nullptr) {
+    EntityRegistry* registry = EntityRegistry::GetInstance();
+    if (!registry)
         return;
-    }
+
     ImGui::Begin("Properties");
 
-    // For every selected entity
-    for (auto iter = entityRegistry->selectedEntities.begin();
-         iter != entityRegistry->selectedEntities.end(); ++iter) {
-        // Create tree node for this entity
-        if (ImGui::TreeNode((*iter)->GetEntityName().c_str())) {
-            // Get its components and create nodes for all of them
-            std::vector<Component*> components = (*iter)->GetComponents();
-            for (int i = 0; i < components.size(); i++) {
-                // If this component has a properties panel
-                if (components[i]->ShouldRenderProperties()) {
-                    // Render it with the name of this component
-                    if (ImGui::TreeNode(components[i]->GetComponentName().c_str())) {
-                        components[i]->RenderPropertiesPanel();
-                        ImGui::TreePop();
-                    }
-                }
-            }
-            ImGui::TreePop();
+    if (registry->selectedEntities.empty()) {
+        ImGui::End();
+        return;
+    }
+
+    Entity* entity = *registry->selectedEntities.begin();
+    ImGui::Text("%s", entity->GetEntityName().c_str());
+
+    for (Component* comp : entity->GetComponents()) {
+        if (!comp->ShouldRenderProperties())
+            continue;
+
+        ImGui::PushID(comp);
+        if (ImGui::CollapsingHeader(comp->GetComponentName().c_str(),
+                                    ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::Indent();
+            comp->RenderPropertiesPanel();
+            ImGui::Unindent();
         }
+        ImGui::PopID();
     }
     ImGui::End();
 }
+
 
 void MainUI::RenderViewport() {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
         return;
     }
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::Begin("Viewport");
     {
         ImGui::BeginChild("View");
         application->SetSceneViewportWidth((int)ImGui::GetContentRegionAvail().x);
         application->SetSceneViewportHeight((int)ImGui::GetContentRegionAvail().y);
-        ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()),
-                     ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
+        ImVec2 size = ImGui::GetContentRegionAvail();
+        ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()), size,
+                     ImVec2(0, 1), ImVec2(1, 0));
         viewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
         ImGui::EndChild();
     }
 
     ImGui::End();
+    ImGui::PopStyleVar();
 }
 
 bool MainUI::IsSceneViewportHovered() { return viewportHovered; }
