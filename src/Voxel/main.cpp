@@ -121,15 +121,6 @@ int main() {
         application->GetActiveShader()->SetMat4("view", view);
         application->GetActiveShader()->SetMat4("projection", projection);
 
-        // Move selected entities up
-        for (auto iter = entityRegistry->selectedEntities.begin();
-             iter != entityRegistry->selectedEntities.end(); ++iter) {
-            TransformComponent* transform = (*iter)->GetComponent<TransformComponent>();
-            if (transform != nullptr) {
-                transform->AddPosition(glm::vec3(0.0f, 0.25f, 0.0f) * application->DeltaTime());
-            }
-        }
-
         for (unsigned int i = 0; i < allMeshRenderers.size(); i++) {
             Entity* entity =
                 entityRegistry->GetEntityFromID(allMeshRenderers[i]->GetOwningEntityID());

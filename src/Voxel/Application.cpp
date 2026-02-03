@@ -24,7 +24,7 @@ bool Application::Initialise() {
     if (window == nullptr) {
         return false;
     }
-    InitialiseImGui();
+    MainUI::Initialise();
     if (!LoadShaders()) {
         return false;
     }
@@ -89,37 +89,6 @@ void Application::InitialiseOpenGl() {
     this->sceneViewportHeight = screenHeight;
     this->window = window;
     LOG_TRACE("Initialised OpenGL");
-}
-
-void Application::InitialiseImGui() {
-    // TODO: Load from settings, if it doesn't exist, try get from OS scale
-    float uiScale = 1.25f;
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO();
-    (void)io;
-    std::string fontPath =
-        std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";
-    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f * uiScale);
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
-
-    ImGui::StyleColorsDark();
-    ImGui::GetStyle().ScaleAllSizes(uiScale);
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look
-    // identical to regular ones.
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 430");
-    LOG_TRACE("Initialised ImGui");
 }
 
 bool Application::LoadShaders() {
@@ -190,7 +159,7 @@ void Application::StartFrame() {
 
     ImGui::NewFrame();
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+    glClearColor(0.12f, 0.12f, 0.15f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

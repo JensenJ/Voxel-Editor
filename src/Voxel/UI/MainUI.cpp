@@ -7,18 +7,64 @@
 #include <Voxel/Entity/EntityRegistry.h>
 #include <Voxel/Rendering/FrameBuffer.h>
 
-// Render ImGui UI
 void MainUI::RenderUI() {
+    SetupFrame();
+
+    // Render panels
+    RenderViewport();
+    RenderHierarchyPanel();
+    RenderObjectPropertiesPanel();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // Render other viewports
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        GLFWwindow* backup_current_context = glfwGetCurrentContext();
+        ImGui::UpdatePlatformWindows();
+        ImGui::RenderPlatformWindowsDefault();
+        glfwMakeContextCurrent(backup_current_context);
+    }
+}
+
+void MainUI::Initialise() {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
         return;
     }
+    // TODO: Load from settings, if it doesn't exist, try get from OS scale
+    float uiScale = 1.25f;
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    (void)io;
+    std::string fontPath =
+        std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";
+    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f * uiScale);
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
-    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
-    if (entityRegistry == nullptr) {
-        return;
+    ImGui::StyleColorsDark();
+    ImGui::GetStyle().ScaleAllSizes(uiScale);
+
+    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look
+    // identical to regular ones.
+    ImGuiStyle& style = ImGui::GetStyle();
+    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+        style.WindowRounding = 0.0f;
+        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(application->GetWindow(), true);
+    ImGui_ImplOpenGL3_Init("#version 430");
+    SetStyle();
+    LOG_TRACE("Initialised ImGui");
+}
+
+void MainUI::SetupFrame() {
     static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -66,8 +112,14 @@ void MainUI::RenderUI() {
         ImGui::DockBuilderDockWindow("Hierarchy", dockIdRightTop);
         ImGui::DockBuilderFinish(dockspace_id);
     }
+    RenderMenuBar();
+    ImGui::End();
+    ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
+}
 
-    // Menu bars (menus at top)
+void MainUI::SetStyle() {}
+
+void MainUI::RenderMenuBar() {
     if (ImGui::BeginMenuBar()) {
         // File menu
         if (ImGui::BeginMenu("File")) {
@@ -88,30 +140,13 @@ void MainUI::RenderUI() {
 
         ImGui::EndMenuBar();
     }
-    ImGui::End();
+}
 
-    // Dock main viewport to dockspace
-    ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-
-    // Render viewport with openGL frame buffer
-    ImGui::Begin("Viewport");
-    {
-        ImGui::BeginChild("View");
-        application->SetSceneViewportWidth((int)ImGui::GetContentRegionAvail().x);
-        application->SetSceneViewportHeight((int)ImGui::GetContentRegionAvail().y);
-
-// Disable a warning which cant be resolved
-#pragma warning(push)
-#pragma warning(disable : 4312)
-        ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()),
-                     ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
-#pragma warning(pop)
-        viewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
-        ImGui::EndChild();
+void MainUI::RenderHierarchyPanel() {
+    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
+    if (entityRegistry == nullptr) {
+        return;
     }
-
-    ImGui::End();
-
     ImGui::Begin("Hierarchy");
     {
         // Get all entities and list them
@@ -191,45 +226,56 @@ void MainUI::RenderUI() {
             ImGui::EndTable();
         }
         ImGui::End();
+    }
+}
 
-        // Properties window for selected entities
-        ImGui::Begin("Properties");
+void MainUI::RenderObjectPropertiesPanel() {
+    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
+    if (entityRegistry == nullptr) {
+        return;
+    }
+    ImGui::Begin("Properties");
 
-        // ImGui::Text("TestLabel");
-        // For every selected entity
-        for (auto iter = entityRegistry->selectedEntities.begin();
-             iter != entityRegistry->selectedEntities.end(); ++iter) {
-            // Create tree node for this entity
-            if (ImGui::TreeNode((*iter)->GetEntityName().c_str())) {
-                // Get its components and create nodes for all of them
-                std::vector<Component*> components = (*iter)->GetComponents();
-                for (int i = 0; i < components.size(); i++) {
-                    // If this component has a properties panel
-                    if (components[i]->ShouldRenderProperties()) {
-                        // Render it with the name of this component
-                        if (ImGui::TreeNode(components[i]->GetComponentName().c_str())) {
-                            components[i]->RenderPropertiesPanel();
-                            ImGui::TreePop();
-                        }
+    // For every selected entity
+    for (auto iter = entityRegistry->selectedEntities.begin();
+         iter != entityRegistry->selectedEntities.end(); ++iter) {
+        // Create tree node for this entity
+        if (ImGui::TreeNode((*iter)->GetEntityName().c_str())) {
+            // Get its components and create nodes for all of them
+            std::vector<Component*> components = (*iter)->GetComponents();
+            for (int i = 0; i < components.size(); i++) {
+                // If this component has a properties panel
+                if (components[i]->ShouldRenderProperties()) {
+                    // Render it with the name of this component
+                    if (ImGui::TreeNode(components[i]->GetComponentName().c_str())) {
+                        components[i]->RenderPropertiesPanel();
+                        ImGui::TreePop();
                     }
                 }
-                ImGui::TreePop();
             }
-        }
-        ImGui::End();
-
-        // Render ImGui
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        // Render other viewports
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
+            ImGui::TreePop();
         }
     }
+    ImGui::End();
+}
+
+void MainUI::RenderViewport() {
+    Application* application = Application::GetInstance();
+    if (application == nullptr) {
+        return;
+    }
+    ImGui::Begin("Viewport");
+    {
+        ImGui::BeginChild("View");
+        application->SetSceneViewportWidth((int)ImGui::GetContentRegionAvail().x);
+        application->SetSceneViewportHeight((int)ImGui::GetContentRegionAvail().y);
+        ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()),
+                     ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
+        viewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
 }
 
 bool MainUI::IsSceneViewportHovered() { return viewportHovered; }

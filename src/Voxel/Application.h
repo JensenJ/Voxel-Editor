@@ -23,7 +23,6 @@ class Application {
   private:
     Application() = default;
     void InitialiseOpenGl();
-    void InitialiseImGui();
     bool LoadShaders();
     void InitialiseFrameBuffer();
     void SetupCamera();
