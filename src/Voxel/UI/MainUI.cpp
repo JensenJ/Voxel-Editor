@@ -106,6 +106,7 @@ void MainUI::RenderUI() {
         ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()),
                      ImGui::GetContentRegionMax(), ImVec2(0, 1), ImVec2(1, 0));
 #pragma warning(pop)
+        viewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
         ImGui::EndChild();
     }
 
@@ -230,3 +231,5 @@ void MainUI::RenderUI() {
         }
     }
 }
+
+bool MainUI::IsSceneViewportHovered() { return viewportHovered; }

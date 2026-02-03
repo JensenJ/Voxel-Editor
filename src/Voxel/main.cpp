@@ -72,7 +72,6 @@ int main() {
         return -3;
     }
 
-    inputManager->BindNewKey(GLFW_KEY_0, GLFW_PRESS, 0, ToggleMouseCursor);
     inputManager->BindNewKey(GLFW_KEY_9, GLFW_PRESS, 0, ToggleWireframeMode);
     inputManager->BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
 
@@ -164,14 +163,6 @@ int main() {
     LOG_TRACE("Exiting...");
 
     return 0;
-}
-
-void ToggleMouseCursor() {
-    Application* application = Application::GetInstance();
-    if (application == nullptr) {
-        return;
-    }
-    application->SetMouseLocked(!application->IsMouseLocked());
 }
 
 void ToggleWireframeMode() { wireframeMode = !wireframeMode; }

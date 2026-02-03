@@ -4,7 +4,7 @@
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-const float MOVEMENTSPEED = 2.5f;
+const float MOVEMENTSPEED = 10.0f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
 
@@ -23,6 +23,8 @@ class Camera {
     float movementSpeed;
     float mouseSensitivity;
     float zoom;
+    bool focused;
+    bool lastFocused;
 
   public:
     // constructor with vectors
@@ -44,8 +46,10 @@ class Camera {
     void ProcessMouseScroll(float yoffset);
 
     float GetZoom();
+    bool IsFocused();
 
   private:
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
+    void SetFocused(bool focus);
 };

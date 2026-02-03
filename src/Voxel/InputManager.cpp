@@ -70,15 +70,22 @@ void InputManager::KeyCallback(GLFWwindow* window, int key, int scancode, int ac
 // components
 bool InputManager::IsKeyDown(struct GLFWwindow* window, int key) {
     if (window == nullptr) {
-        std::cout << "ERROR: Window not found in IsKeyDown() event." << std::endl;
+        LOG_ERROR("ERROR: Window not found in IsKeyDown() event.");
         return false;
     }
     return glfwGetKey(window, key) == GLFW_PRESS;
 }
 
+bool InputManager::IsMouseButtonDown(struct GLFWwindow* window, int key) {
+    if (window == nullptr) {
+        LOG_ERROR("ERROR: Window not found in IsMouseButtonDown() event.");
+        return false;
+    }
+    return glfwGetMouseButton(window, key) == GLFW_PRESS;
+}
+
 void InputManager::Cleanup() { actionKeys.clear(); }
 
-// TODO: clamp mouse cursor in viewport when cursor is disabled
 void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposIn) {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
@@ -100,14 +107,12 @@ void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposI
     lastMouseX = xpos;
     lastMouseY = ypos;
 
-    // Only process the mouse moving if the mouse is locked to the viewport
-    if (application->IsMouseLocked() == true) {
-        Camera* cam = application->GetCamera();
-        if (cam == nullptr) {
-            return;
-        }
-        cam->ProcessMouseMovement(xoffset, yoffset);
+    // Only process the camera moving if the mouse is locked to the viewport
+    Camera* cam = application->GetCamera();
+    if (cam == nullptr) {
+        return;
     }
+    cam->ProcessMouseMovement(xoffset, yoffset);
 }
 
 void InputManager::RawKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods) {

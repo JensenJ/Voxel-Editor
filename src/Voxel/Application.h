@@ -20,9 +20,6 @@ class Application {
     void SetSceneViewportWidth(int width);
     void SetSceneViewportHeight(int height);
 
-    void SetMouseLocked(bool locked);
-    bool IsMouseLocked();
-
   private:
     Application() = default;
     void InitialiseOpenGl();

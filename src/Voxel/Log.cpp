@@ -6,7 +6,7 @@ std::shared_ptr<spdlog::logger> Log::Logger;
 
 void Log::Init() {
     Logger = spdlog::stdout_color_mt("VOXEL");
-    Logger->set_pattern("%^[%T.%e] [%n:%l] %v%$");
+    Logger->set_pattern("%^[%T.%e] [%n::%l] %v%$");
     Logger->set_level(spdlog::level::trace);
 
     LOG_TRACE("Logger has initialised");

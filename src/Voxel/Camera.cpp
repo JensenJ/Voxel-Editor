@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include <Voxel/pch.h>
+#include <Voxel/UI/MainUI.h>
 
 Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
                float mouseSensitivity, float zoom) {
@@ -22,27 +23,31 @@ void Camera::ProcessInput(GLFWwindow* window) {
     }
     float velocity = movementSpeed * application->DeltaTime();
 
-    // std::cout << "Processing input" << std::endl;
-
-    // std::cout << "position: " << position.x << "," << position.y << ", " << position.z <<
-    // std::endl;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
-        velocity = velocity * 5;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_W))
-        position += front * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_S))
-        position -= front * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_A))
-        position -= right * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_D))
-        position += right * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_Q))
-        position -= up * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_E))
-        position += up * velocity;
+    if (InputManager::IsMouseButtonDown(window, GLFW_MOUSE_BUTTON_2)) {
+        SetFocused(true);
+        if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
+            velocity = velocity * 5;
+        if (InputManager::IsKeyDown(window, GLFW_KEY_W))
+            position += front * velocity;
+        if (InputManager::IsKeyDown(window, GLFW_KEY_S))
+            position -= front * velocity;
+        if (InputManager::IsKeyDown(window, GLFW_KEY_A))
+            position -= right * velocity;
+        if (InputManager::IsKeyDown(window, GLFW_KEY_D))
+            position += right * velocity;
+        if (InputManager::IsKeyDown(window, GLFW_KEY_Q))
+            position -= up * velocity;
+        if (InputManager::IsKeyDown(window, GLFW_KEY_E))
+            position += up * velocity;
+    } else {
+        SetFocused(false);
+    }
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
+    if (!IsFocused()) {
+        return;
+    }
     xoffset *= mouseSensitivity;
     yoffset *= mouseSensitivity;
 
@@ -74,7 +79,32 @@ void Camera::UpdateCameraVectors() {
     up = glm::normalize(glm::cross(right, front));
 }
 
+void Camera::SetFocused(bool focus) {
+    if (focus == lastFocused)
+        return;
+    Application* application = Application::GetInstance();
+    if (!application)
+        return;
+    ImGuiIO& io = ImGui::GetIO();
+    if (focus) {
+        // Only allow focus if hovering over the scene viewport
+        if (!MainUI::IsSceneViewportHovered())
+            return;
+
+        glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        io.ConfigFlags |= ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
+    } else {
+        glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        io.ConfigFlags &= ~(ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard);
+    }
+    this->focused = focus;
+    this->lastFocused = focus;
+}
+
 void Camera::ProcessMouseScroll(float yoffset) {
+    if (!MainUI::IsSceneViewportHovered()) {
+        return;
+    }
     zoom -= (float)yoffset;
     if (zoom < 1.0f)
         zoom = 1.0f;
@@ -83,5 +113,14 @@ void Camera::ProcessMouseScroll(float yoffset) {
 }
 
 float Camera::GetZoom() { return zoom; }
+
+bool Camera::IsFocused() {
+    Application* application = Application::GetInstance();
+    if (application == nullptr) {
+        return false;
+    }
+    int mouseLock = glfwGetInputMode(application->GetWindow(), GLFW_CURSOR);
+    return mouseLock == GLFW_CURSOR_DISABLED;
+}
 
 glm::mat4 Camera::GetViewMatrix() { return glm::lookAt(position, position + front, up); }

@@ -12,6 +12,7 @@ class InputManager {
     void KeyCallback(struct GLFWwindow* window, int key, int scancode, int action, int mods);
 
     static bool IsKeyDown(struct GLFWwindow* window, int key);
+    static bool IsMouseButtonDown(struct GLFWwindow* window, int button);
 
     void Cleanup();
 

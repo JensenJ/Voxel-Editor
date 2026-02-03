@@ -227,19 +227,6 @@ void Application::SetSceneViewportWidth(int width) { this->sceneViewportWidth = 
 
 void Application::SetSceneViewportHeight(int height) { this->sceneViewportHeight = height; }
 
-void Application::SetMouseLocked(bool lock) {
-    if (lock) {
-        glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    } else {
-        glfwSetInputMode(this->window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    }
-}
-
-bool Application::IsMouseLocked() {
-    int mouseLock = glfwGetInputMode(this->window, GLFW_CURSOR);
-    return mouseLock == GLFW_CURSOR_DISABLED;
-}
-
 void Application::UpdateFrameBufferSize(GLFWwindow* window, int width, int height) {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
