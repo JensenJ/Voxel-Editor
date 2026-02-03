@@ -21,6 +21,7 @@ void ToggleWireframeMode();
 void CloseWindow();
 
 int main() {
+    Log::Init();
     Application* application = Application::GetInstance();
     if (!application->Initialise()) {
         return -1;
@@ -104,7 +105,7 @@ int main() {
         Camera* camera = application->GetCamera();
         if (camera == nullptr) {
             glfwTerminate();
-            std::cout << "Failed to get camera" << std::endl;
+            LOG_ERROR("Failed to get camera");
             return -3;
         };
 
@@ -134,13 +135,13 @@ int main() {
             Entity* entity =
                 entityRegistry->GetEntityFromID(allMeshRenderers[i]->GetOwningEntityID());
             if (entity == nullptr) {
-                std::cout << "Entity had invalid id" << std::endl;
+                LOG_ERROR("Entity had invalid id");
                 continue;
             }
 
             TransformComponent* transform = entity->GetComponent<TransformComponent>();
             if (transform == nullptr) {
-                std::cout << "Entity has invalid transform" << std::endl;
+                LOG_ERROR("Entity has invalid transform");
                 continue;
             }
 
@@ -160,7 +161,7 @@ int main() {
     application->Shutdown();
     delete application;
     application = nullptr;
-    std::cout << "Exiting" << std::endl;
+    LOG_TRACE("Exiting...");
 
     return 0;
 }

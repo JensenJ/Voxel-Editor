@@ -63,7 +63,7 @@ void Application::InitialiseOpenGl() {
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
     if (window == NULL) {
-        std::cout << "Failed to create GLFW window" << std::endl;
+        LOG_FATAL("Failed to create GLFW window");
         glfwTerminate();
         return;
     }
@@ -71,7 +71,7 @@ void Application::InitialiseOpenGl() {
     glfwSwapInterval(1);
 
     if (!gladLoadGL(glfwGetProcAddress)) {
-        std::cout << "Failed to initialise GLAD" << std::endl;
+        LOG_FATAL("Failed to initialise GLAD");
         glfwTerminate();
         return;
     }
@@ -88,6 +88,7 @@ void Application::InitialiseOpenGl() {
     this->sceneViewportWidth = screenWidth;
     this->sceneViewportHeight = screenHeight;
     this->window = window;
+    LOG_TRACE("Initialised OpenGL");
 }
 
 void Application::InitialiseImGui() {
@@ -118,6 +119,7 @@ void Application::InitialiseImGui() {
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 430");
+    LOG_TRACE("Initialised ImGui");
 }
 
 bool Application::LoadShaders() {
@@ -132,13 +134,13 @@ bool Application::LoadShaders() {
 
     // If shader compilation/linking failed
     if (!shaderSuccess) {
-        std::cout << "Failed to create shaders" << std::endl;
+        LOG_FATAL("Failed to create shaders");
         glfwTerminate();
         return false;
     }
     this->activeShaderProgram = new Shader(shader);
 
-    std::cout << "Created Shaders" << std::endl;
+    LOG_TRACE("Loaded shaders");
     return true;
 }
 

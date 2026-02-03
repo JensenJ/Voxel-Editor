@@ -130,6 +130,15 @@ if(UNIX AND NOT APPLE)
 
 endif()
 
+#spdlog
+FetchContent_Declare(
+    spdlog
+    GIT_REPOSITORY https://github.com/gabime/spdlog.git
+    GIT_TAG v1.17.0
+)
+FetchContent_MakeAvailable(spdlog)
+
+
 #Link libs
 target_link_libraries(voxel_editor PRIVATE
     OpenGL::GL
@@ -137,6 +146,7 @@ target_link_libraries(voxel_editor PRIVATE
     glad_gl_core_43
     glm::glm
     imgui
+	spdlog::spdlog
 )
 
 # Copy resources directory to runtime output directory
