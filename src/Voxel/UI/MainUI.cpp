@@ -72,8 +72,8 @@ void MainUI::SetupFrame() {
     ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
-    ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_Always);
+    ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Always);
     ImGui::SetNextWindowViewport(viewport->ID);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
@@ -212,89 +212,87 @@ void MainUI::RenderHierarchyPanel() {
         return;
     }
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));
     ImGui::Begin("Hierarchy");
-    {
-        // Get all entities and list them
-        std::map<unsigned int, Entity*> entities = entityRegistry->GetAllEntities();
 
-        static ImGuiTableFlags entityHierarchyFlags =
-            ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable |
-            ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
+    // Get all entities and list them
+    std::map<unsigned int, Entity*> entities = entityRegistry->GetAllEntities();
 
-        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));
-        if (ImGui::BeginTable("Hierarchy Entity Table", 2, entityHierarchyFlags)) {
-            // Print table headers
-            ImGui::TableSetupColumn("Entity ID", ImGuiTableColumnFlags_WidthFixed);
-            ImGui::TableSetupColumn("Entity Name", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableHeadersRow();
+    static ImGuiTableFlags entityHierarchyFlags =
+        ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable |
+        ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
 
-            // Print Entities in panel and make them selectable
-            for (std::map<unsigned int, Entity*>::iterator iter = entities.begin();
-                 iter != entities.end(); ++iter) {
-                bool selected = false;
-                bool found = false;
+    if (ImGui::BeginTable("Hierarchy Entity Table", 2, entityHierarchyFlags)) {
+        // Print table headers
+        ImGui::TableSetupColumn("Entity ID", ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("Entity Name", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
 
-                // If this entity is part of selected entities already, then set selected to true
-                auto selectedEntity = entityRegistry->selectedEntities.find(iter->second);
+        // Print Entities in panel and make them selectable
+        for (std::map<unsigned int, Entity*>::iterator iter = entities.begin();
+             iter != entities.end(); ++iter) {
+            bool selected = false;
+            bool found = false;
 
-                if (selectedEntity != entityRegistry->selectedEntities.end()) {
-                    selected = true;
-                    found = true;
-                }
+            // If this entity is part of selected entities already, then set selected to true
+            auto selectedEntity = entityRegistry->selectedEntities.find(iter->second);
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                if (ImGui::Selectable(std::to_string(iter->second->GetEntityID()).c_str(),
-                                      &selected, ImGuiSelectableFlags_SpanAllColumns)) {
+            if (selectedEntity != entityRegistry->selectedEntities.end()) {
+                selected = true;
+                found = true;
+            }
 
-                    if (!ImGui::GetIO().KeyCtrl) // If ctrl is not held
-                    {
-                        // Clear the existing entities
-                        entityRegistry->selectedEntities.clear();
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (ImGui::Selectable(std::to_string(iter->second->GetEntityID()).c_str(), &selected,
+                                  ImGuiSelectableFlags_SpanAllColumns)) {
 
-                        // Check if its false as clicking on a selected item would deselect it
-                        if (selected == false) {
-                            if (found == true) // If this entity was previously selected
-                            {
-                                // Add it back to selected entities
-                                entityRegistry->selectedEntities.insert(iter->second);
-                            }
+                if (!ImGui::GetIO().KeyCtrl) // If ctrl is not held
+                {
+                    // Clear the existing entities
+                    entityRegistry->selectedEntities.clear();
+
+                    // Check if its false as clicking on a selected item would deselect it
+                    if (selected == false) {
+                        if (found == true) // If this entity was previously selected
+                        {
+                            // Add it back to selected entities
+                            entityRegistry->selectedEntities.insert(iter->second);
                         }
-                        // If this entity is a different selection from on the list
-                        else {
-                            if (found == true) // If this entity was found in selected entities
-                            {
-                                entityRegistry->selectedEntities.erase(iter->second);
-                            } else // If this entity was not found in selected entities
-                            {
-                                entityRegistry->selectedEntities.insert(iter->second);
-                            }
+                    }
+                    // If this entity is a different selection from on the list
+                    else {
+                        if (found == true) // If this entity was found in selected entities
+                        {
+                            entityRegistry->selectedEntities.erase(iter->second);
+                        } else // If this entity was not found in selected entities
+                        {
+                            entityRegistry->selectedEntities.insert(iter->second);
                         }
-                    } else // If CTRL was held
-                    {
-                        // If this entity is selected
-                        if (selected == true) {
-                            if (found == false) // If entity is not on the list already
-                            {
-                                entityRegistry->selectedEntities.insert(iter->second);
-                            }
-                        } else {
-                            if (found == true) // If entity is on the list already
-                            {
-                                entityRegistry->selectedEntities.erase(iter->second);
-                            }
+                    }
+                } else // If CTRL was held
+                {
+                    // If this entity is selected
+                    if (selected == true) {
+                        if (found == false) // If entity is not on the list already
+                        {
+                            entityRegistry->selectedEntities.insert(iter->second);
+                        }
+                    } else {
+                        if (found == true) // If entity is on the list already
+                        {
+                            entityRegistry->selectedEntities.erase(iter->second);
                         }
                     }
                 }
-                ImGui::TableNextColumn();
-                ImGui::Text("%s", iter->second->GetEntityName().c_str());
             }
-            ImGui::EndTable();
-            ImGui::PopStyleVar();
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", iter->second->GetEntityName().c_str());
         }
-        ImGui::End();
-        ImGui::PopStyleVar();
+        ImGui::EndTable();
     }
+    ImGui::End();
+    ImGui::PopStyleVar(2);
 }
 
 void MainUI::RenderObjectPropertiesPanel() {
@@ -337,9 +335,9 @@ void MainUI::RenderViewport() {
     ImGui::Begin("Viewport");
     {
         ImGui::BeginChild("View");
-        application->SetSceneViewportWidth((int)ImGui::GetContentRegionAvail().x);
-        application->SetSceneViewportHeight((int)ImGui::GetContentRegionAvail().y);
         ImVec2 size = ImGui::GetContentRegionAvail();
+        application->SetSceneViewportWidth((int)size.x);
+        application->SetSceneViewportHeight((int)size.y);
         ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()), size,
                      ImVec2(0, 1), ImVec2(1, 0));
         viewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
@@ -462,7 +460,6 @@ void MainUI::RenderLogPanel() {
             ImGui::PushTextWrapPos(0.0f);
             ImGui::TextUnformatted(entry.message.c_str());
             ImGui::PopTextWrapPos();
-
         }
 
         ImGui::EndTable();

@@ -15,10 +15,9 @@ class Application {
     class FrameBuffer* GetSceneBuffer();
     int GetSceneViewportWidth();
     int GetSceneViewportHeight();
-    class Camera* GetCamera();
-
     void SetSceneViewportWidth(int width);
     void SetSceneViewportHeight(int height);
+    class Camera* GetCamera();
 
   private:
     Application() = default;

@@ -9,7 +9,6 @@
 #include <Voxel/Entity/Components/TransformComponent.h>
 #include <Voxel/Entity/Entity.h>
 #include <Voxel/Rendering/EntityRenderer.h>
-#include <Voxel/Rendering/FrameBuffer.h>
 #include <Voxel/Rendering/RawModel.h>
 #include <Voxel/Rendering/ShaderLoader.h>
 

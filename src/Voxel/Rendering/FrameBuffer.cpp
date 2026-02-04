@@ -38,7 +38,7 @@ void FrameBuffer::RescaleFrameBuffer(int width, int height) {
 
     // Check buffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cout << "Error: Framebuffer is not complete" << std::endl;
+        LOG_FATAL("Framebuffer is not complete");
     }
 }
 

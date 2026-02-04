@@ -58,8 +58,8 @@ void Application::InitialiseOpenGl() {
 
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-    int screenWidth = mode->width;
-    int screenHeight = mode->height;
+    int screenWidth = 1920;
+    int screenHeight = 1080;
 
     GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Voxel Editor", NULL, NULL);
     if (window == NULL) {
@@ -79,16 +79,19 @@ void Application::InitialiseOpenGl() {
     glfwSetWindowPos(window, (mode->width - screenWidth) / 2, (mode->height - screenHeight) / 2);
     glfwMaximizeWindow(window);
 
-    glViewport(0, 0, screenWidth, screenHeight);
+    int fbWidth, fbHeight;
+    glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
+    glViewport(0, 0, fbWidth, fbHeight);
     glfwSetFramebufferSizeCallback(window, Application::UpdateFrameBufferSize);
     glfwSetCursorPosCallback(window, InputManager::RawMouseInput);
     glfwSetScrollCallback(window, InputManager::RawScrollInput);
     glfwSetKeyCallback(window, InputManager::RawKeyInput);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-    this->sceneViewportWidth = screenWidth;
-    this->sceneViewportHeight = screenHeight;
+
+    this->sceneViewportWidth = fbWidth;
+    this->sceneViewportHeight = fbHeight;
     this->window = window;
-    LOG_INFO("Initialised OpenGL");
+    LOG_INFO("Initialised OpenGL with screen size ({}, {})", fbWidth, fbHeight);
 }
 
 bool Application::LoadShaders() {
@@ -118,9 +121,11 @@ void Application::InitialiseFrameBuffer() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_MULTISAMPLE);
 
-    double lastTime = glfwGetTime();
+    int fbW, fbH;
+    glfwGetFramebufferSize(window, &fbW, &fbH);
 
-    this->sceneBuffer = new FrameBuffer(sceneViewportWidth, sceneViewportHeight);
+    LOG_INFO("Created framebuffer with size: ({}, {})", fbW, fbH);
+    this->sceneBuffer = new FrameBuffer(fbW, fbH);
 }
 
 void Application::SetupCamera() { this->camera = new Camera(); }
@@ -149,7 +154,6 @@ void Application::StartFrame() {
     }
 
     this->activeShaderProgram->Use();
-
     this->sceneBuffer->Bind();
     glEnable(GL_DEPTH_TEST);
 
@@ -197,11 +201,11 @@ void Application::SetSceneViewportWidth(int width) { this->sceneViewportWidth = 
 void Application::SetSceneViewportHeight(int height) { this->sceneViewportHeight = height; }
 
 void Application::UpdateFrameBufferSize(GLFWwindow* window, int width, int height) {
-    Application* application = Application::GetInstance();
-    if (application == nullptr) {
+    if (width == 0 || height == 0)
         return;
-    }
 
     glViewport(0, 0, width, height);
-    application->GetSceneBuffer()->RescaleFrameBuffer(width, height);
+    if (auto* app = Application::GetInstance()) {
+        app->GetSceneBuffer()->RescaleFrameBuffer(width, height);
+    }
 }
