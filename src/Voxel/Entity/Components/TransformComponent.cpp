@@ -24,9 +24,8 @@ TransformComponent::TransformComponent(glm::vec3 position, glm::vec3 rotation, g
     shouldRenderProperties = true;
 }
 
-// TODO: Tidy this up further
 void TransformComponent::RenderPropertiesPanel() {
-    ImGui::Text("Position");
+    ImGui::SeparatorText("Position");
     ImGui::Spacing();
 
     ImGui::PushID("Position");
@@ -35,15 +34,17 @@ void TransformComponent::RenderPropertiesPanel() {
     const float dragSpeed = 1.0f;
 
     auto drawAxis = [&](const char* label, ImVec4 color, float& value) {
+        ImGui::BeginGroup();
         ImGui::PushStyleColor(ImGuiCol_Text, color);
-        ImGui::Text(label);
+        ImGui::TextUnformatted(label);
         ImGui::PopStyleColor();
 
         ImGui::SameLine();
         ImGui::PushItemWidth(-1);
         ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, dragSpeed, 0.0f, 0.0f,
-                         "%.2f");
+                         "%.0f");
         ImGui::PopItemWidth();
+        ImGui::EndGroup();
     };
 
     drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), transform[3].x);

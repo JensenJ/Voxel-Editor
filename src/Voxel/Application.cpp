@@ -88,7 +88,7 @@ void Application::InitialiseOpenGl() {
     this->sceneViewportWidth = screenWidth;
     this->sceneViewportHeight = screenHeight;
     this->window = window;
-    LOG_TRACE("Initialised OpenGL");
+    LOG_INFO("Initialised OpenGL");
 }
 
 bool Application::LoadShaders() {
@@ -109,7 +109,7 @@ bool Application::LoadShaders() {
     }
     this->activeShaderProgram = new Shader(shader);
 
-    LOG_TRACE("Loaded shaders");
+    LOG_INFO("Loaded shaders");
     return true;
 }
 

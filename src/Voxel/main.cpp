@@ -63,12 +63,14 @@ int main() {
 
     EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
     if (entityRegistry == nullptr) {
+        LOG_FATAL("Failed to get entity registry");
         return -2;
     }
 
     // Basic Input binding
     InputManager* inputManager = InputManager::GetInstance();
     if (inputManager == nullptr) {
+        LOG_FATAL("Failed to get input manager");
         return -3;
     }
 
@@ -104,7 +106,7 @@ int main() {
         Camera* camera = application->GetCamera();
         if (camera == nullptr) {
             glfwTerminate();
-            LOG_ERROR("Failed to get camera");
+            LOG_FATAL("Failed to get camera");
             return -3;
         };
 

@@ -13,6 +13,7 @@ class MainUI {
     static void RenderHierarchyPanel();
     static void RenderObjectPropertiesPanel();
     static void RenderViewport();
+    static void RenderLogPanel();
 
   private:
     static inline bool viewportHovered = false;

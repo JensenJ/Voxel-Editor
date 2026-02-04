@@ -29,4 +29,4 @@
 #include <Voxel/Application.h>
 #include <Voxel/Entity/EntityRegistry.h>
 #include <Voxel/InputManager.h>
-#include <Voxel/Log.h>
+#include <Voxel/Log/Log.h>

@@ -1,5 +1,6 @@
 #include "MainUI.h"
 #include <Voxel/pch.h>
+#include <mutex>
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
@@ -14,6 +15,7 @@ void MainUI::RenderUI() {
     RenderViewport();
     RenderHierarchyPanel();
     RenderObjectPropertiesPanel();
+    RenderLogPanel();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -62,7 +64,7 @@ void MainUI::Initialise() {
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(application->GetWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 430");
-    LOG_TRACE("Initialised ImGui");
+    LOG_INFO("Initialised ImGui");
 }
 
 void MainUI::SetupFrame() {
@@ -101,10 +103,13 @@ void MainUI::SetupFrame() {
             ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, nullptr, &dockspace_id);
         auto dockIdRightTop =
             ImGui::DockBuilderSplitNode(dockIdRight, ImGuiDir_Up, 0.25f, nullptr, &dockIdRight);
+        auto dockIdDown =
+            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.2f, nullptr, &dockspace_id);
 
         // Dock the windows in the correct place
         ImGui::DockBuilderDockWindow("Properties", dockIdRight);
         ImGui::DockBuilderDockWindow("Hierarchy", dockIdRightTop);
+        ImGui::DockBuilderDockWindow("Log", dockIdDown);
         ImGui::DockBuilderFinish(dockspace_id);
     }
     RenderMenuBar();
@@ -323,7 +328,6 @@ void MainUI::RenderObjectPropertiesPanel() {
     ImGui::End();
 }
 
-
 void MainUI::RenderViewport() {
     Application* application = Application::GetInstance();
     if (application == nullptr) {
@@ -344,6 +348,128 @@ void MainUI::RenderViewport() {
 
     ImGui::End();
     ImGui::PopStyleVar();
+}
+
+ImVec4 GetLogColor(spdlog::level::level_enum level) {
+    switch (level) {
+    case spdlog::level::trace:
+        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white
+    case spdlog::level::debug:
+        return ImVec4(1.0f, 0.5f, 1.0f, 1.0f); // purple
+    case spdlog::level::info:
+        return ImVec4(0.1f, 0.65f, 0.1f, 1.0f); // green
+    case spdlog::level::warn:
+        return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // yellow
+    case spdlog::level::err:
+        return ImVec4(1.0f, 0.7f, 0.1f, 1.0f); // orange
+    case spdlog::level::critical:
+        return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // red
+    default:
+        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // fallback white
+    }
+}
+
+void DrawSeverity(spdlog::level::level_enum level) {
+    const char* text = "";
+    ImVec4 color;
+
+    switch (level) {
+    case spdlog::level::trace:
+        text = "TRACE";
+        color = {1.0f, 1.0f, 1.0f, 1.0f};
+        break;
+    case spdlog::level::debug:
+        text = "DEBUG";
+        color = {1.0f, 0.5f, 1.0f, 1};
+        break;
+    case spdlog::level::info:
+        text = "INFO ";
+        color = {0.1f, 0.65f, 0.1f, 1};
+        break;
+    case spdlog::level::warn:
+        text = "WARN ";
+        color = {1.0f, 0.8f, 0.3f, 1};
+        break;
+    case spdlog::level::err:
+        text = "ERROR";
+        color = {1.0f, 0.3f, 0.3f, 1};
+        break;
+    case spdlog::level::critical:
+        text = "FATAL";
+        color = {1.0f, 0.0f, 0.0f, 1};
+        break;
+    default:
+        text = "UNKN ";
+        color = {1, 1, 1, 1};
+        break;
+    }
+
+    ImGui::TextColored(color, "%s", text);
+}
+
+void MainUI::RenderLogPanel() {
+    static bool scrollToBottom = true;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
+    ImGui::Begin("Log");
+
+    std::shared_ptr<ImGuiSinkMT> logSink = Log::GetImGuiLogSink();
+    if (!logSink) {
+        ImGui::End();
+        return;
+    }
+
+    auto logs = logSink->GetBufferCopy();
+
+    static ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                   ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY |
+                                   ImGuiTableFlags_Reorderable;
+
+    if (ImGui::BeginTable("LogTable", 5, flags)) {
+        ImGui::TableSetupScrollFreeze(0, 1);
+        ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+        ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 160.0f);
+        ImGui::TableSetupColumn("Thread", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+        ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+        ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableHeadersRow();
+
+        for (const auto& entry : logs) {
+            ImGui::TableNextRow();
+
+            auto tp = entry.time;
+            auto secs = std::chrono::time_point_cast<std::chrono::seconds>(tp);
+            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(tp - secs).count();
+
+            // Convert timestamp once per row
+            auto tt = std::chrono::system_clock::to_time_t(secs);
+            std::tm tm{};
+            localtime_s(&tm, &tt);
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%02d:%02d:%02d.%03lld", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
+
+            ImGui::TableNextColumn();
+            ImGui::Text("%u", entry.thread_id);
+
+            ImGui::TableNextColumn();
+            DrawSeverity(entry.level);
+
+            ImGui::TableNextColumn();
+            ImGui::PushTextWrapPos(0.0f);
+            ImGui::TextUnformatted(entry.message.c_str());
+            ImGui::PopTextWrapPos();
+
+        }
+
+        ImGui::EndTable();
+    }
+
+    ImGui::PopStyleVar();
+    ImGui::End();
 }
 
 bool MainUI::IsSceneViewportHovered() { return viewportHovered; }

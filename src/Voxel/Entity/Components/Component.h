@@ -4,7 +4,7 @@
 class Component {
   public:
     virtual void OnStart() {}
-    virtual void OnUpdate(float deltaTime);
+    virtual void OnUpdate(float deltaTime) {}
     virtual void OnDestroy() {}
 
     std::string GetComponentName() { return componentName; }
@@ -18,7 +18,6 @@ class Component {
     unsigned int owningEntityID = -1;
 
   protected:
-    float deltaTime = 0;
     std::string componentName = "";
     bool shouldRenderProperties = false;
 };
