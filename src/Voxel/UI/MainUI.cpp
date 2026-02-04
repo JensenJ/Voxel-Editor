@@ -348,25 +348,6 @@ void MainUI::RenderViewport() {
     ImGui::PopStyleVar();
 }
 
-ImVec4 GetLogColor(spdlog::level::level_enum level) {
-    switch (level) {
-    case spdlog::level::trace:
-        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white
-    case spdlog::level::debug:
-        return ImVec4(1.0f, 0.5f, 1.0f, 1.0f); // purple
-    case spdlog::level::info:
-        return ImVec4(0.1f, 0.65f, 0.1f, 1.0f); // green
-    case spdlog::level::warn:
-        return ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // yellow
-    case spdlog::level::err:
-        return ImVec4(1.0f, 0.7f, 0.1f, 1.0f); // orange
-    case spdlog::level::critical:
-        return ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // red
-    default:
-        return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // fallback white
-    }
-}
-
 void DrawSeverity(spdlog::level::level_enum level) {
     const char* text = "";
     ImVec4 color;
@@ -442,16 +423,20 @@ void MainUI::RenderLogPanel() {
             // Convert timestamp once per row
             auto tt = std::chrono::system_clock::to_time_t(secs);
             std::tm tm{};
+#if defined(_WIN32) || defined(_WIN64)
             localtime_s(&tm, &tt);
+#else
+            localtime_r(&tt, &tm);
+#endif
 
             ImGui::TableNextColumn();
             ImGui::Text("%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
 
             ImGui::TableNextColumn();
-            ImGui::Text("%02d:%02d:%02d.%03lld", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
+            ImGui::Text("%02d:%02d:%02d.%03ld", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
 
             ImGui::TableNextColumn();
-            ImGui::Text("%u", entry.thread_id);
+            ImGui::Text("%lu", entry.thread_id);
 
             ImGui::TableNextColumn();
             DrawSeverity(entry.level);

@@ -1,5 +1,4 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
-#pragma once
 
 #include <Voxel/pch.h>
 #include <glm/gtc/type_ptr.hpp>
