@@ -24,7 +24,6 @@ class Camera {
     float mouseSensitivity;
     float zoom;
     bool focused;
-    bool lastFocused;
 
   public:
     // constructor with vectors
@@ -46,7 +45,6 @@ class Camera {
     void ProcessMouseScroll(float yoffset);
 
     float GetZoom();
-    bool IsFocused();
 
   private:
     // calculates the front vector from the Camera's (updated) Euler Angles

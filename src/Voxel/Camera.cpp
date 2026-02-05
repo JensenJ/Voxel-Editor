@@ -19,51 +19,61 @@ Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
 
 void Camera::ProcessInput(GLFWwindow* window) {
     Application* application = Application::GetInstance();
-    if (application == nullptr) {
+    if (!application)
         return;
-    }
+
     float velocity = movementSpeed * application->DeltaTime();
 
-    // TODO: Check if we are hovering over scene viewport
-    if (InputManager::IsMouseButtonDown(window, GLFW_MOUSE_BUTTON_2)) {
+    const bool rmbDown = InputManager::IsMouseButtonDown(window, GLFW_MOUSE_BUTTON_2);
+    const bool viewportHovered = MainUI::GetViewportPanel()->IsHovered();
+
+    // Start focus ONLY if RMB pressed while hovering viewport
+    if (!focused && rmbDown && viewportHovered) {
         SetFocused(true);
-        if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
-            velocity = velocity * 5;
-        if (InputManager::IsKeyDown(window, GLFW_KEY_W))
-            position += front * velocity;
-        if (InputManager::IsKeyDown(window, GLFW_KEY_S))
-            position -= front * velocity;
-        if (InputManager::IsKeyDown(window, GLFW_KEY_A))
-            position -= right * velocity;
-        if (InputManager::IsKeyDown(window, GLFW_KEY_D))
-            position += right * velocity;
-        if (InputManager::IsKeyDown(window, GLFW_KEY_Q))
-            position -= up * velocity;
-        if (InputManager::IsKeyDown(window, GLFW_KEY_E))
-            position += up * velocity;
-    } else {
+    }
+
+    // Stop focus when RMB released
+    if (focused && !rmbDown) {
         SetFocused(false);
     }
+
+    if (!focused)
+        return;
+
+    // Force ImGUI mouse position to be unavailable to prevent accidental clicking on other panels
+    ImGuiIO& io = ImGui::GetIO();
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
+        velocity *= 5.0f;
+
+    if (InputManager::IsKeyDown(window, GLFW_KEY_W))
+        position += front * velocity;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_S))
+        position -= front * velocity;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_A))
+        position -= right * velocity;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_D))
+        position += right * velocity;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_Q))
+        position -= up * velocity;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_E))
+        position += up * velocity;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
-    if (!IsFocused()) {
+    if (!focused)
         return;
-    }
+
     xoffset *= mouseSensitivity;
     yoffset *= mouseSensitivity;
 
     yaw += xoffset;
     pitch += yoffset;
 
-    // make sure that when pitch is out of bounds, screen doesn't get flipped
     if (constrainPitch) {
-        if (pitch > 89.0f)
-            pitch = 89.0f;
-        if (pitch < -89.0f)
-            pitch = -89.0f;
+        pitch = glm::clamp(pitch, -89.0f, 89.0f);
     }
-    // update Front, Right and Up Vectors using the updated Euler angles
+
     UpdateCameraVectors();
 }
 
@@ -82,25 +92,20 @@ void Camera::UpdateCameraVectors() {
 }
 
 void Camera::SetFocused(bool focus) {
-    if (focus == lastFocused)
+    if (focus == focused)
         return;
+
     Application* application = Application::GetInstance();
     if (!application)
         return;
-    ImGuiIO& io = ImGui::GetIO();
-    if (focus) {
-        // Only allow focus if hovering over the scene viewport
-        if (!MainUI::GetViewportPanel()->IsHovered())
-            return;
 
+    if (focus) {
         glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-        io.ConfigFlags |= ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard;
     } else {
         glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-        io.ConfigFlags &= ~(ImGuiConfigFlags_NoMouse | ImGuiConfigFlags_NoKeyboard);
     }
-    this->focused = focus;
-    this->lastFocused = focus;
+
+    focused = focus;
 }
 
 void Camera::ProcessMouseScroll(float yoffset) {
@@ -115,14 +120,5 @@ void Camera::ProcessMouseScroll(float yoffset) {
 }
 
 float Camera::GetZoom() { return zoom; }
-
-bool Camera::IsFocused() {
-    Application* application = Application::GetInstance();
-    if (application == nullptr) {
-        return false;
-    }
-    int mouseLock = glfwGetInputMode(application->GetWindow(), GLFW_CURSOR);
-    return mouseLock == GLFW_CURSOR_DISABLED;
-}
 
 glm::mat4 Camera::GetViewMatrix() { return glm::lookAt(position, position + front, up); }
