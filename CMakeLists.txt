@@ -108,6 +108,7 @@ find_package(OpenGL REQUIRED)
 #Compilation
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
     ${CMAKE_SOURCE_DIR}/src/*.cpp
+	${CMAKE_SOURCE_DIR}/src/*.h
 )
 
 add_executable(voxel_editor ${PROJECT_SOURCES})

@@ -4,18 +4,48 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
-#include <Voxel/Entity/Entity.h>
 #include <Voxel/Entity/EntityRegistry.h>
 #include <Voxel/Rendering/FrameBuffer.h>
+#include <Voxel/UI/MenuBar.h>
+#include <Voxel/UI/Panels/ComponentPanel.h>
+#include <Voxel/UI/Panels/HierarchyPanel.h>
+#include <Voxel/UI/Panels/LogPanel.h>
+#include <Voxel/UI/Panels/ViewportPanel.h>
+#include <Voxel/UI/UIPanel.h>
+#include <Voxel/UI/UIStyle.h>
+
+void MainUI::RegisterPanels() {
+    {
+        auto panel = std::make_unique<ViewportPanel>();
+        viewportPanel = panel.get();
+        panels.push_back(std::move(panel));
+    }
+    {
+        auto panel = std::make_unique<ComponentPanel>();
+        componentPanel = panel.get();
+        panels.push_back(std::move(panel));
+    }
+    {
+        auto panel = std::make_unique<HierarchyPanel>();
+        hierarchyPanel = panel.get();
+        panels.push_back(std::move(panel));
+    }
+    {
+        auto panel = std::make_unique<LogPanel>();
+        logPanel = panel.get();
+        panels.push_back(std::move(panel));
+    }
+}
 
 void MainUI::RenderUI() {
     SetupFrame();
 
     // Render panels
-    RenderViewport();
-    RenderHierarchyPanel();
-    RenderObjectPropertiesPanel();
-    RenderLogPanel();
+    for (auto& panel : panels) {
+        if (panel) {
+            panel->Render();
+        }
+    }
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -59,7 +89,8 @@ void MainUI::Initialise() {
         style.Colors[ImGuiCol_WindowBg].w = 1.0f;
     }
 
-    SetStyle();
+    UIStyle::SetStyle();
+    RegisterPanels();
 
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(application->GetWindow(), true);
@@ -68,390 +99,74 @@ void MainUI::Initialise() {
 }
 
 void MainUI::SetupFrame() {
-    static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_PassthruCentralNode;
-    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     const ImGuiViewport* viewport = ImGui::GetMainViewport();
 
     ImGui::SetNextWindowPos(viewport->WorkPos, ImGuiCond_Always);
     ImGui::SetNextWindowSize(viewport->WorkSize, ImGuiCond_Always);
     ImGui::SetNextWindowViewport(viewport->ID);
+
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-
-    windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-                   ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-    windowFlags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    ImGui::Begin("Dockspace", nullptr, windowFlags);
+
+    ImGui::Begin("Dockspace", nullptr,
+                 ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                     ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                     ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                     ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_MenuBar);
     ImGui::PopStyleVar(3);
 
-    // Create dockspace
-    ImGuiIO& io = ImGui::GetIO();
     ImGuiID dockspace_id = ImGui::GetID("Dockspace");
-    static bool firstTimeLoading = ImGui::DockBuilderGetNode(dockspace_id) == nullptr;
-    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspaceFlags);
-
-    if (firstTimeLoading) {
-        firstTimeLoading = false;
-
-        ImGui::DockBuilderRemoveNode(dockspace_id);
-        ImGui::DockBuilderAddNode(dockspace_id, dockspaceFlags | ImGuiDockNodeFlags_DockSpace);
-        ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
-
-        auto dockIdRight =
-            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.2f, nullptr, &dockspace_id);
-        auto dockIdRightTop =
-            ImGui::DockBuilderSplitNode(dockIdRight, ImGuiDir_Up, 0.25f, nullptr, &dockIdRight);
-        auto dockIdDown =
-            ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Down, 0.2f, nullptr, &dockspace_id);
-
-        // Dock the windows in the correct place
-        ImGui::DockBuilderDockWindow("Properties", dockIdRight);
-        ImGui::DockBuilderDockWindow("Hierarchy", dockIdRightTop);
-        ImGui::DockBuilderDockWindow("Log", dockIdDown);
-        ImGui::DockBuilderFinish(dockspace_id);
-    }
-    RenderMenuBar();
-    ImGui::End();
-    ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Once);
-}
-
-void MainUI::SetStyle() {
-    ImGuiStyle& style = ImGui::GetStyle();
-    ImVec4* colors = style.Colors;
-
-    // Base
-    colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
-    colors[ImGuiCol_ChildBg] = ImVec4(0.10f, 0.105f, 0.11f, 1.00f);
-    colors[ImGuiCol_PopupBg] = ImVec4(0.08f, 0.08f, 0.08f, 0.94f);
-
-    // Borders
-    colors[ImGuiCol_Border] = ImVec4(0.20f, 0.20f, 0.20f, 0.60f);
-    colors[ImGuiCol_BorderShadow] = ImVec4(0.00f, 0.00f, 0.00f, 0.00f);
-
-    // Text
-    colors[ImGuiCol_Text] = ImVec4(0.95f, 0.96f, 0.98f, 1.00f);
-    colors[ImGuiCol_TextDisabled] = ImVec4(0.36f, 0.42f, 0.47f, 1.00f);
-
-    // Headers (Tree, Selectables)
-    colors[ImGuiCol_Header] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-    colors[ImGuiCol_HeaderHovered] = ImVec4(0.26f, 0.30f, 0.34f, 1.00f);
-    colors[ImGuiCol_HeaderActive] = ImVec4(0.30f, 0.35f, 0.40f, 1.00f);
-
-    // Buttons
-    colors[ImGuiCol_Button] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-    colors[ImGuiCol_ButtonHovered] = ImVec4(0.26f, 0.30f, 0.34f, 1.00f);
-    colors[ImGuiCol_ButtonActive] = ImVec4(0.30f, 0.35f, 0.40f, 1.00f);
-
-    // Frame BG (sliders, inputs)
-    colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.20f, 0.24f, 1.00f);
-    colors[ImGuiCol_FrameBgHovered] = ImVec4(0.18f, 0.22f, 0.26f, 1.00f);
-    colors[ImGuiCol_FrameBgActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-
-    // Tabs
-    colors[ImGuiCol_Tab] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
-    colors[ImGuiCol_TabHovered] = ImVec4(0.38f, 0.43f, 0.47f, 1.00f);
-    colors[ImGuiCol_TabActive] = ImVec4(0.28f, 0.32f, 0.36f, 1.00f);
-    colors[ImGuiCol_TabUnfocused] = ImVec4(0.15f, 0.18f, 0.22f, 1.00f);
-    colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.20f, 0.25f, 0.29f, 1.00f);
-
-    // Title
-    colors[ImGuiCol_TitleBg] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-    colors[ImGuiCol_TitleBgActive] = ImVec4(0.10f, 0.12f, 0.14f, 1.00f);
-    colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.08f, 0.10f, 0.12f, 1.00f);
-
-    // Scrollbar
-    colors[ImGuiCol_ScrollbarBg] = ImVec4(0.02f, 0.02f, 0.02f, 0.53f);
-    colors[ImGuiCol_ScrollbarGrab] = ImVec4(0.31f, 0.31f, 0.31f, 1.00f);
-    colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4(0.41f, 0.41f, 0.41f, 1.00f);
-    colors[ImGuiCol_ScrollbarGrabActive] = ImVec4(0.51f, 0.51f, 0.51f, 1.00f);
-
-    style.WindowRounding = 6.0f;
-    style.ChildRounding = 6.0f;
-    style.FrameRounding = 5.0f;
-    style.PopupRounding = 5.0f;
-    style.ScrollbarRounding = 6.0f;
-    style.GrabRounding = 5.0f;
-    style.TabRounding = 5.0f;
-
-    style.FramePadding = ImVec2(8, 4);
-    style.ItemSpacing = ImVec2(8, 6);
-    style.ItemInnerSpacing = ImVec2(6, 4);
-    style.IndentSpacing = 18.0f;
-}
-
-void MainUI::RenderMenuBar() {
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10, 6));
-    if (ImGui::BeginMenuBar()) {
-        // File menu
-        if (ImGui::BeginMenu("File")) {
-            ImGui::MenuItem("New", "Ctrl+N");
-            ImGui::MenuItem("Open", "Ctrl+N");
-            ImGui::Separator();
-            ImGui::MenuItem("Save", "Ctrl+S");
-            ImGui::MenuItem("Save As", "Ctrl+Shift+S");
-            ImGui::EndMenu();
-        }
-
-        // Edit menu
-        if (ImGui::BeginMenu("Edit")) {
-            ImGui::MenuItem("Undo", "Ctrl+Z");
-            ImGui::MenuItem("Redo", "Ctrl+Shift+Z");
-            ImGui::EndMenu();
-        }
-
-        ImGui::EndMenuBar();
-    }
-    ImGui::PopStyleVar();
-}
-
-void MainUI::RenderHierarchyPanel() {
-    EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
-    if (entityRegistry == nullptr) {
-        return;
-    }
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));
-    ImGui::Begin("Hierarchy");
-
-    // Get all entities and list them
-    std::map<unsigned int, Entity*> entities = entityRegistry->GetAllEntities();
-
-    static ImGuiTableFlags entityHierarchyFlags =
-        ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable |
-        ImGuiTableFlags_Reorderable | ImGuiTableFlags_Hideable;
-
-    if (ImGui::BeginTable("Hierarchy Entity Table", 2, entityHierarchyFlags)) {
-        // Print table headers
-        ImGui::TableSetupColumn("Entity ID", ImGuiTableColumnFlags_WidthFixed);
-        ImGui::TableSetupColumn("Entity Name", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableHeadersRow();
-
-        // Print Entities in panel and make them selectable
-        for (std::map<unsigned int, Entity*>::iterator iter = entities.begin();
-             iter != entities.end(); ++iter) {
-            bool selected = false;
-            bool found = false;
-
-            // If this entity is part of selected entities already, then set selected to true
-            auto selectedEntity = entityRegistry->selectedEntities.find(iter->second);
-
-            if (selectedEntity != entityRegistry->selectedEntities.end()) {
-                selected = true;
-                found = true;
-            }
-
-            ImGui::TableNextRow();
-            ImGui::TableNextColumn();
-            if (ImGui::Selectable(std::to_string(iter->second->GetEntityID()).c_str(), &selected,
-                                  ImGuiSelectableFlags_SpanAllColumns)) {
-
-                if (!ImGui::GetIO().KeyCtrl) // If ctrl is not held
-                {
-                    // Clear the existing entities
-                    entityRegistry->selectedEntities.clear();
-
-                    // Check if its false as clicking on a selected item would deselect it
-                    if (selected == false) {
-                        if (found == true) // If this entity was previously selected
-                        {
-                            // Add it back to selected entities
-                            entityRegistry->selectedEntities.insert(iter->second);
-                        }
-                    }
-                    // If this entity is a different selection from on the list
-                    else {
-                        if (found == true) // If this entity was found in selected entities
-                        {
-                            entityRegistry->selectedEntities.erase(iter->second);
-                        } else // If this entity was not found in selected entities
-                        {
-                            entityRegistry->selectedEntities.insert(iter->second);
-                        }
-                    }
-                } else // If CTRL was held
-                {
-                    // If this entity is selected
-                    if (selected == true) {
-                        if (found == false) // If entity is not on the list already
-                        {
-                            entityRegistry->selectedEntities.insert(iter->second);
-                        }
-                    } else {
-                        if (found == true) // If entity is on the list already
-                        {
-                            entityRegistry->selectedEntities.erase(iter->second);
-                        }
-                    }
-                }
-            }
-            ImGui::TableNextColumn();
-            ImGui::Text("%s", iter->second->GetEntityName().c_str());
-        }
-        ImGui::EndTable();
-    }
-    ImGui::End();
-    ImGui::PopStyleVar(2);
-}
-
-void MainUI::RenderObjectPropertiesPanel() {
-    EntityRegistry* registry = EntityRegistry::GetInstance();
-    if (!registry)
-        return;
-
-    ImGui::Begin("Properties");
-
-    if (registry->selectedEntities.empty()) {
-        ImGui::End();
-        return;
+    if (ShouldBuildDefaultDockLayout()) {
+        BuildDefaultDockLayout(dockspace_id);
     }
 
-    Entity* entity = *registry->selectedEntities.begin();
-    ImGui::Text("%s", entity->GetEntityName().c_str());
+    ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), ImGuiDockNodeFlags_PassthruCentralNode);
 
-    for (Component* comp : entity->GetComponents()) {
-        if (!comp->ShouldRenderProperties())
-            continue;
-
-        ImGui::PushID(comp);
-        if (ImGui::CollapsingHeader(comp->GetComponentName().c_str(),
-                                    ImGuiTreeNodeFlags_DefaultOpen)) {
-            ImGui::Indent();
-            comp->RenderPropertiesPanel();
-            ImGui::Unindent();
-        }
-        ImGui::PopID();
-    }
+    MenuBar::Render();
     ImGui::End();
 }
 
-void MainUI::RenderViewport() {
-    Application* application = Application::GetInstance();
-    if (application == nullptr) {
-        return;
-    }
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-    ImGui::Begin("Viewport");
-    {
-        ImGui::BeginChild("View");
-        ImVec2 size = ImGui::GetContentRegionAvail();
-        application->SetSceneViewportWidth((int)size.x);
-        application->SetSceneViewportHeight((int)size.y);
-        ImGui::Image(ImTextureID(application->GetSceneBuffer()->GetFrameTexture()), size,
-                     ImVec2(0, 1), ImVec2(1, 0));
-        viewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows);
-        ImGui::EndChild();
-    }
+void MainUI::BuildDefaultDockLayout(ImGuiID dockspaceID) {
+    ImGui::DockBuilderRemoveNode(dockspaceID);
+    ImGui::DockBuilderAddNode(dockspaceID, ImGuiDockNodeFlags_PassthruCentralNode |
+                                               ImGuiDockNodeFlags_DockSpace);
+    ImGui::DockBuilderSetNodeSize(dockspaceID, ImGui::GetMainViewport()->WorkSize);
 
-    ImGui::End();
-    ImGui::PopStyleVar();
+    ImGuiID center = dockspaceID;
+    ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, 0.2f, nullptr, &center);
+    ImGuiID rightTop = ImGui::DockBuilderSplitNode(right, ImGuiDir_Up, 0.25f, nullptr, &right);
+    ImGuiID down = ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, 0.2f, nullptr, &center);
+
+    // Dock the windows in the correct place
+    ImGui::DockBuilderDockWindow(viewportPanel->GetPanelName(), center);
+    ImGui::DockBuilderDockWindow(componentPanel->GetPanelName(), right);
+    ImGui::DockBuilderDockWindow(hierarchyPanel->GetPanelName(), rightTop);
+    ImGui::DockBuilderDockWindow(logPanel->GetPanelName(), down);
+    ImGui::DockBuilderFinish(dockspaceID);
+
+    dockLayoutBuilt = true;
+    LOG_INFO("Built default dockspace");
 }
 
-void DrawSeverity(spdlog::level::level_enum level) {
-    const char* text = "";
-    ImVec4 color;
+bool MainUI::ShouldBuildDefaultDockLayout() {
+    const ImGuiIO& io = ImGui::GetIO();
 
-    switch (level) {
-    case spdlog::level::trace:
-        text = "TRACE";
-        color = {1.0f, 1.0f, 1.0f, 1.0f};
-        break;
-    case spdlog::level::debug:
-        text = "DEBUG";
-        color = {1.0f, 0.5f, 1.0f, 1};
-        break;
-    case spdlog::level::info:
-        text = "INFO ";
-        color = {0.1f, 0.65f, 0.1f, 1};
-        break;
-    case spdlog::level::warn:
-        text = "WARN ";
-        color = {1.0f, 0.8f, 0.3f, 1};
-        break;
-    case spdlog::level::err:
-        text = "ERROR";
-        color = {1.0f, 0.3f, 0.3f, 1};
-        break;
-    case spdlog::level::critical:
-        text = "FATAL";
-        color = {1.0f, 0.0f, 0.0f, 1};
-        break;
-    default:
-        text = "UNKN ";
-        color = {1, 1, 1, 1};
-        break;
-    }
+    if (dockLayoutBuilt)
+        return false;
 
-    ImGui::TextColored(color, "%s", text);
+    if (!io.IniFilename)
+        return true;
+
+    return !std::filesystem::exists(io.IniFilename);
 }
 
-void MainUI::RenderLogPanel() {
-    static bool scrollToBottom = true;
+MenuBar* MainUI::GetMenuBar() { return menuBar; }
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
-    ImGui::Begin("Log");
+ViewportPanel* MainUI::GetViewportPanel() { return viewportPanel; }
 
-    std::shared_ptr<ImGuiSinkMT> logSink = Log::GetImGuiLogSink();
-    if (!logSink) {
-        ImGui::End();
-        return;
-    }
+LogPanel* MainUI::GetLogPanel() { return logPanel; }
 
-    auto logs = logSink->GetBufferCopy();
+HierarchyPanel* MainUI::GetHierarchyPanel() { return hierarchyPanel; }
 
-    static ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                                   ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY |
-                                   ImGuiTableFlags_Reorderable;
-
-    if (ImGui::BeginTable("LogTable", 5, flags)) {
-        ImGui::TableSetupScrollFreeze(0, 1);
-        ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed, 140.0f);
-        ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 160.0f);
-        ImGui::TableSetupColumn("Thread", ImGuiTableColumnFlags_WidthFixed, 100.0f);
-        ImGui::TableSetupColumn("Level", ImGuiTableColumnFlags_WidthFixed, 100.0f);
-        ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableHeadersRow();
-
-        for (const auto& entry : logs) {
-            ImGui::TableNextRow();
-
-            auto tp = entry.time;
-            auto secs = std::chrono::time_point_cast<std::chrono::seconds>(tp);
-            auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(tp - secs).count();
-
-            // Convert timestamp once per row
-            auto tt = std::chrono::system_clock::to_time_t(secs);
-            std::tm tm{};
-#if defined(_WIN32) || defined(_WIN64)
-            localtime_s(&tm, &tt);
-#else
-            localtime_r(&tt, &tm);
-#endif
-
-            ImGui::TableNextColumn();
-            ImGui::Text("%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
-
-            ImGui::TableNextColumn();
-            ImGui::Text("%02d:%02d:%02d.%03ld", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
-
-            ImGui::TableNextColumn();
-            ImGui::Text("%lu", entry.thread_id);
-
-            ImGui::TableNextColumn();
-            DrawSeverity(entry.level);
-
-            ImGui::TableNextColumn();
-            ImGui::PushTextWrapPos(0.0f);
-            ImGui::TextUnformatted(entry.message.c_str());
-            ImGui::PopTextWrapPos();
-        }
-
-        ImGui::EndTable();
-    }
-
-    ImGui::PopStyleVar();
-    ImGui::End();
-}
-
-bool MainUI::IsSceneViewportHovered() { return viewportHovered; }
+ComponentPanel* MainUI::GetComponentPanel() { return componentPanel; }

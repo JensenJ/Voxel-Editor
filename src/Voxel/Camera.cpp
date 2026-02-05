@@ -1,6 +1,7 @@
 #include "Camera.h"
 #include <Voxel/pch.h>
 #include <Voxel/UI/MainUI.h>
+#include <Voxel/UI/Panels/ViewportPanel.h>;
 
 Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
                float mouseSensitivity, float zoom) {
@@ -23,6 +24,7 @@ void Camera::ProcessInput(GLFWwindow* window) {
     }
     float velocity = movementSpeed * application->DeltaTime();
 
+    // TODO: Check if we are hovering over scene viewport
     if (InputManager::IsMouseButtonDown(window, GLFW_MOUSE_BUTTON_2)) {
         SetFocused(true);
         if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
@@ -88,7 +90,7 @@ void Camera::SetFocused(bool focus) {
     ImGuiIO& io = ImGui::GetIO();
     if (focus) {
         // Only allow focus if hovering over the scene viewport
-        if (!MainUI::IsSceneViewportHovered())
+        if (!MainUI::GetViewportPanel()->IsHovered())
             return;
 
         glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -102,7 +104,7 @@ void Camera::SetFocused(bool focus) {
 }
 
 void Camera::ProcessMouseScroll(float yoffset) {
-    if (!MainUI::IsSceneViewportHovered()) {
+    if (!MainUI::GetViewportPanel()->IsHovered()) {
         return;
     }
     zoom -= (float)yoffset;

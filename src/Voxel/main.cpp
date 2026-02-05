@@ -151,7 +151,7 @@ int main() {
     application->Shutdown();
     delete application;
     application = nullptr;
-    LOG_TRACE("Exiting...");
+    LOG_INFO("Exiting...");
 
     return 0;
 }
