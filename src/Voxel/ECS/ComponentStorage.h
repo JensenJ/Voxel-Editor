@@ -39,6 +39,8 @@ template <typename T> class ComponentStorage {
 
     size_t Size() const { return components.size(); }
 
+    void Clear() { components.clear(); }
+
   private:
     std::vector<T> components;
 

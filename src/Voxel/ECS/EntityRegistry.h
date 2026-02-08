@@ -32,14 +32,29 @@ class EntityRegistry {
         return View<Ts...>(GetStorage<std::remove_const_t<Ts>>()...);
     }
 
+    void Cleanup() {
+        for (auto& clear : storageClearers)
+            clear();
+        nextEntity = InvalidEntity;
+    }
+
   private:
     static EntityRegistry* instance;
     Entity nextEntity = InvalidEntity;
 
     template <typename T> ComponentStorage<T>& GetStorage() {
         static ComponentStorage<T> storage;
+        static bool registered = false;
+
+        if (!registered) {
+            componentRemovers.emplace_back([](Entity e) { storage.Remove(e); });
+            storageClearers.emplace_back([]() { storage.Clear(); });
+
+            registered = true;
+        }
         return storage;
     }
 
     std::vector<std::function<void(Entity)>> componentRemovers;
+    std::vector<std::function<void()>> storageClearers;
 };

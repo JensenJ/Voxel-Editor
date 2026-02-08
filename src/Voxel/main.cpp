@@ -134,9 +134,9 @@ int main() {
     delete inputManager;
     inputManager = nullptr;
     testModel.DeleteModel();
-    // entityRegistry->Cleanup();
-    // delete entityRegistry;
-    // entityRegistry = nullptr;
+    entityRegistry->Cleanup();
+    delete entityRegistry;
+    entityRegistry = nullptr;
     application->Shutdown();
     delete application;
     application = nullptr;
