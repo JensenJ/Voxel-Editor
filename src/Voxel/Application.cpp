@@ -4,8 +4,6 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
 #include <Voxel/Camera.h>
-#include <Voxel/Entity/Entity.h>
-#include <Voxel/Entity/EntityRegistry.h>
 #include <Voxel/Rendering/FrameBuffer.h>
 #include <Voxel/Rendering/ShaderLoader.h>
 #include <Voxel/UI/MainUI.h>

@@ -1,12 +1,10 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 
 #include <Voxel/pch.h>
-#include <glm/gtc/type_ptr.hpp>
 #include <Voxel/Camera.h>
-#include <Voxel/Entity/Components/Component.h>
-#include <Voxel/Entity/Components/MeshRendererComponent.h>
-#include <Voxel/Entity/Components/TransformComponent.h>
-#include <Voxel/Entity/Entity.h>
+#include <Voxel/ECS/Components/MeshComponent.h>
+#include <Voxel/ECS/Components/MetaComponent.h>
+#include <Voxel/ECS/Components/TransformComponent.h>
 #include <Voxel/Rendering/EntityRenderer.h>
 #include <Voxel/Rendering/RawModel.h>
 #include <Voxel/Rendering/ShaderLoader.h>
@@ -14,7 +12,6 @@
 bool mouseLocked = true;
 bool wireframeMode = false;
 
-void ToggleMouseCursor();
 void ToggleWireframeMode();
 void CloseWindow();
 
@@ -76,22 +73,18 @@ int main() {
     inputManager->BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
 
     // Create entities
-    for (int x = 0; x < 3; x++) {
+    for (int x = 0; x < 2; x++) {
         for (int y = 0; y < 2; y++) {
-            for (int z = 0; z < 10; z++) {
-                Entity* entity = entityRegistry->CreateEntity("Cube (" + std::to_string(x) + ", " +
-                                                              std::to_string(y) + ", " +
-                                                              std::to_string(z) + ")");
-                entity->AddComponent<TransformComponent>(glm::vec3(x, y, z));
-                entity->AddComponent<MeshRendererComponent>(&testModel);
+            for (int z = 0; z < 2; z++) {
+                Entity entity = entityRegistry->CreateEntity();
+                auto& meta = entityRegistry->AddComponent<MetaComponent>(
+                    entity, std::format("Cube ({}, {}, {})", x, y, z), true);
+                auto& transform =
+                    entityRegistry->AddComponent<TransformComponent>(entity, glm::vec3(x, y, z));
+                auto& mesh = entityRegistry->AddComponent<MeshComponent>(entity, &testModel);
             }
         }
     }
-
-    std::vector<TransformComponent*> allTransforms =
-        entityRegistry->GetAllComponentsOfType<TransformComponent>();
-    std::vector<MeshRendererComponent*> allMeshRenderers =
-        entityRegistry->GetAllComponentsOfType<MeshRendererComponent>();
 
     while (application->ShouldStayOpen()) {
         application->StartFrame();
@@ -108,8 +101,6 @@ int main() {
             return -3;
         };
 
-        // Update all components in the entity registry
-        entityRegistry->UpdateAllComponents(application->DeltaTime());
         camera->ProcessInput(application->GetWindow());
 
         glm::mat4 view = camera->GetViewMatrix();
@@ -121,33 +112,30 @@ int main() {
         application->GetActiveShader()->SetMat4("view", view);
         application->GetActiveShader()->SetMat4("projection", projection);
 
-        for (unsigned int i = 0; i < allMeshRenderers.size(); i++) {
-            Entity* entity =
-                entityRegistry->GetEntityFromID(allMeshRenderers[i]->GetOwningEntityID());
-            if (entity == nullptr) {
-                LOG_ERROR("Entity had invalid id");
+        for (auto [e, transform, mesh, meta] :
+             entityRegistry
+                 ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
+
+            if (!meta.visible)
                 continue;
-            }
 
-            TransformComponent* transform = entity->GetComponent<TransformComponent>();
-            if (transform == nullptr) {
-                LOG_ERROR("Entity has invalid transform");
-                continue;
-            }
-
-            glm::mat4 model = transform->GetTransform();
-            application->GetActiveShader()->SetMat4("model", model);
-
-            renderer.Render(*allMeshRenderers[i]->GetMesh());
+            application->GetActiveShader()->SetMat4("model", transform.transform);
+            if (mesh.model)
+                renderer.Render(*mesh.model);
+            else
+                LOG_ERROR("Mesh not found");
         }
 
         application->EndFrame();
     }
 
     inputManager->Cleanup();
+    delete inputManager;
+    inputManager = nullptr;
     testModel.DeleteModel();
-    entityRegistry->Cleanup();
-
+    // entityRegistry->Cleanup();
+    // delete entityRegistry;
+    // entityRegistry = nullptr;
     application->Shutdown();
     delete application;
     application = nullptr;

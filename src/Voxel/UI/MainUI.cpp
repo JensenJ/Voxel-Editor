@@ -4,7 +4,6 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
-#include <Voxel/Entity/EntityRegistry.h>
 #include <Voxel/Rendering/FrameBuffer.h>
 #include <Voxel/UI/MenuBar.h>
 #include <Voxel/UI/Panels/ComponentPanel.h>

@@ -1,6 +1,5 @@
 #pragma once
 #include <Voxel/pch.h>
-#include <Voxel/Entity/Entity.h>
 #include <Voxel/UI/UIPanel.h>
 
 class ComponentPanel : public UIPanel {
@@ -9,7 +8,7 @@ class ComponentPanel : public UIPanel {
 
   private:
     void RenderInternal() override {
-        EntityRegistry* registry = EntityRegistry::GetInstance();
+        /*EntityRegistry* registry = EntityRegistry::GetInstance();
         if (!registry)
             return;
 
@@ -32,7 +31,7 @@ class ComponentPanel : public UIPanel {
                 ImGui::Unindent();
             }
             ImGui::PopID();
-        }
+        }*/
     }
 
     int LoadStyles() override { return 0; }

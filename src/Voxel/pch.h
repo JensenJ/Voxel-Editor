@@ -1,6 +1,7 @@
 #pragma once
 
 // STL
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <functional>
@@ -27,6 +28,7 @@
 
 // Voxel Editor
 #include <Voxel/Application.h>
-#include <Voxel/Entity/EntityRegistry.h>
+#include <Voxel/ECS/Entity.h>
+#include <Voxel/ECS/EntityRegistry.h>
 #include <Voxel/InputManager.h>
 #include <Voxel/Log/Log.h>

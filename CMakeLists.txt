@@ -105,13 +105,20 @@ target_link_libraries(imgui PRIVATE glfw glad_gl_core_43)
 #OpenGL
 find_package(OpenGL REQUIRED)
 
-#Compilation
-file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/src/*.cpp
-	${CMAKE_SOURCE_DIR}/src/*.h
+add_executable(voxel_editor)
+target_sources(voxel_editor PRIVATE
+    "src/Voxel/main.cpp"
+    "src/Voxel/Application.cpp"
+	"src/Voxel/Camera.cpp"
+	"src/Voxel/InputManager.cpp"
+	"src/Voxel/Log/Log.cpp"
+	"src/Voxel/ECS/EntityRegistry.cpp"
+	"src/Voxel/Rendering/EntityRenderer.cpp"
+	"src/Voxel/Rendering/FrameBuffer.cpp"
+	"src/Voxel/Rendering/RawModel.cpp"
+	"src/Voxel/Rendering/ShaderLoader.cpp"
+	"src/Voxel/UI/MainUI.cpp"
 )
-
-add_executable(voxel_editor ${PROJECT_SOURCES})
 
 target_include_directories(voxel_editor PRIVATE
     ${CMAKE_SOURCE_DIR}/src/
