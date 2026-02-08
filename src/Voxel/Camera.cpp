@@ -2,7 +2,7 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 #include <Voxel/UI/MainUI.h>
-#include <Voxel/UI/Panels/ViewportPanel.h>;
+#include <Voxel/UI/Panels/ViewportPanel.h>
 
 Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
                float mouseSensitivity, float zoom) {
