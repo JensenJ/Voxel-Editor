@@ -1,6 +1,8 @@
 #pragma once
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
+#include <Voxel/ECS/Components/TransformComponent.h>
+#include <Voxel/ECS/EditorRenderable.h>
 #include <Voxel/UI/UIPanel.h>
 
 class ComponentPanel : public UIPanel {
@@ -8,31 +10,29 @@ class ComponentPanel : public UIPanel {
     const char* GetPanelName() override { return "Components"; }
 
   private:
-    void RenderInternal() override {
-        /*EntityRegistry* registry = EntityRegistry::GetInstance();
-        if (!registry)
-            return;
-
-        if (registry->selectedEntities.empty()) {
-            return;
-        }
-
-        Entity* entity = *registry->selectedEntities.begin();
-        ImGui::Text("%s", entity->GetEntityName().c_str());
-
-        for (Component* comp : entity->GetComponents()) {
-            if (!comp->ShouldRenderProperties())
-                continue;
-
-            ImGui::PushID(comp);
-            if (ImGui::CollapsingHeader(comp->GetComponentName().c_str(),
-                                        ImGuiTreeNodeFlags_DefaultOpen)) {
+    template <EditorRenderable T>
+    void RenderComponentIfPresent(EntityRegistry& registry, Entity e) {
+        if (auto* comp = registry.GetComponent<T>(e)) {
+            ImGui::PushID(&comp);
+            if (ImGui::CollapsingHeader(T::ComponentName, ImGuiTreeNodeFlags_DefaultOpen)) {
                 ImGui::Indent();
-                comp->RenderPropertiesPanel();
+                comp->RenderComponentPanel();
                 ImGui::Unindent();
             }
             ImGui::PopID();
-        }*/
+        }
+    }
+
+    void RenderInternal() override {
+        EntityRegistry* registry = EntityRegistry::GetInstance();
+        if (!registry)
+            return;
+
+        Entity selected = registry->GetSelectedEntity();
+        if (selected == InvalidEntity)
+            return;
+
+        RenderComponentIfPresent<TransformComponent>(*registry, selected);
     }
 
     int LoadStyles() override { return 0; }

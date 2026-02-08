@@ -6,25 +6,23 @@
 #include <glm/gtx/quaternion.hpp>
 
 struct TransformComponent {
+    static constexpr const char* ComponentName = "Transform";
     Entity entity;
 
     glm::vec3 position{0.0f};
-    glm::quat rotation{1, 0, 0, 0}; // Identity quaternion
+    glm::quat rotation{1, 0, 0, 0};
     glm::vec3 scale{1.0f};
 
     glm::mat4 transform{1.0f};
 
-    // Default constructor
     TransformComponent() = default;
 
-    // Constructor using Euler angles in DEGREES
     TransformComponent(const glm::vec3& pos, const glm::vec3& eulerDegrees = glm::vec3(0.0f),
                        const glm::vec3& scl = glm::vec3(1.0f))
         : position(pos), scale(scl) {
         SetRotationEulerDegrees(eulerDegrees);
     }
 
-    // Position
     void SetPosition(const glm::vec3& newPosition) {
         position = newPosition;
         UpdateTransform();
@@ -35,18 +33,16 @@ struct TransformComponent {
         UpdateTransform();
     }
 
-    // Rotation using quaternions
     void SetRotation(const glm::quat& newRotation) {
         rotation = newRotation;
         UpdateTransform();
     }
 
     void AddRotation(const glm::quat& deltaRotation) {
-        rotation = deltaRotation * rotation; // quaternion multiplication
+        rotation = deltaRotation * rotation;
         UpdateTransform();
     }
 
-    // Rotation using Euler angles in DEGREES
     void SetRotationEulerDegrees(const glm::vec3& eulerDegrees) {
         glm::vec3 radians = glm::radians(eulerDegrees);
         rotation = glm::quat(radians);
@@ -59,13 +55,11 @@ struct TransformComponent {
         UpdateTransform();
     }
 
-    // Scale
     void SetScale(const glm::vec3& newScale) {
         scale = newScale;
         UpdateTransform();
     }
 
-    // Update the final transform matrix
     void UpdateTransform() {
         glm::mat4 t = glm::translate(glm::mat4(1.0f), position);
         glm::mat4 r = glm::toMat4(rotation);
@@ -74,11 +68,10 @@ struct TransformComponent {
         transform = t * r * s;
     }
 
-    // Convenience getters
     glm::vec3 GetRotationEulerDegrees() const { return glm::degrees(glm::eulerAngles(rotation)); }
     glm::quat GetRotationQuat() const { return rotation; }
 
-    /*void TransformComponent::RenderPropertiesPanel() {
+    void RenderComponentPanel() {
         ImGui::SeparatorText("Position");
         ImGui::Spacing();
 
@@ -101,10 +94,11 @@ struct TransformComponent {
             ImGui::EndGroup();
         };
 
-        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), transform[3].x);
-        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), transform[3].y);
-        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), transform[3].z);
+        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), position.x);
+        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), position.y);
+        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), position.z);
 
+        UpdateTransform();
         ImGui::PopID();
-    }*/
+    }
 };

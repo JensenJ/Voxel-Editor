@@ -14,6 +14,9 @@ class EntityRegistry {
     void DestroyEntity(Entity e) {
         for (auto& remover : componentRemovers)
             remover(e);
+        if (selectedEntity == e) {
+            selectedEntity = InvalidEntity;
+        }
     }
 
     template <typename T, typename... Args> T& AddComponent(Entity e, Args&&... args) {
@@ -36,11 +39,17 @@ class EntityRegistry {
         for (auto& clear : storageClearers)
             clear();
         nextEntity = InvalidEntity;
+        selectedEntity = InvalidEntity;
     }
+
+    void SelectEntity(Entity entity) { selectedEntity = entity; }
+    Entity GetSelectedEntity() { return selectedEntity; }
 
   private:
     static EntityRegistry* instance;
     Entity nextEntity = InvalidEntity;
+
+    Entity selectedEntity = InvalidEntity;
 
     template <typename T> ComponentStorage<T>& GetStorage() {
         static ComponentStorage<T> storage;
