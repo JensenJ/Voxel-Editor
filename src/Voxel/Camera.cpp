@@ -1,5 +1,6 @@
 #include "Camera.h"
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <Voxel/UI/MainUI.h>
 #include <Voxel/UI/Panels/ViewportPanel.h>;
 

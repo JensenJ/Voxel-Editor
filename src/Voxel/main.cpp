@@ -1,6 +1,7 @@
 #define IMGUI_IMPL_OPENGL_LOADER_GLAD
 
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <Voxel/Camera.h>
 #include <Voxel/ECS/Components/MeshComponent.h>
 #include <Voxel/ECS/Components/MetaComponent.h>

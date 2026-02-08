@@ -1,5 +1,6 @@
 #pragma once
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <Voxel/Rendering/FrameBuffer.h>
 #include <Voxel/UI/UIPanel.h>
 

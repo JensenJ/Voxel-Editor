@@ -1,5 +1,6 @@
 #pragma once
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <Voxel/ECS/ComponentStorage.h>
 #include <Voxel/ECS/Entity.h>
 #include <Voxel/ECS/View.h>

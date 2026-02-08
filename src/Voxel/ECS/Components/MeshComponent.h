@@ -1,6 +1,6 @@
 #pragma once
 #include <Voxel/pch.h>
-#include <Voxel/ECS/Entity.h>
+#include <Voxel/Core.h>
 #include <Voxel/Rendering/RawModel.h>
 
 struct MeshComponent {

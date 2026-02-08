@@ -1,5 +1,6 @@
 #include "FrameBuffer.h"
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 
 FrameBuffer::FrameBuffer(int width, int height) {
     // Create frame buffer and bind it

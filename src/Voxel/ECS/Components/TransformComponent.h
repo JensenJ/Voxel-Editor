@@ -1,9 +1,9 @@
 #pragma once
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
-#include <Voxel/ECS/Entity.h>
 
 struct TransformComponent {
     Entity entity;

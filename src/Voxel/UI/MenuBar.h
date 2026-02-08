@@ -1,5 +1,6 @@
 #pragma once
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 
 class MenuBar {
   public:

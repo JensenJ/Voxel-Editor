@@ -1,5 +1,6 @@
 #pragma once
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <Voxel/UI/UIPanel.h>
 
 class HierarchyPanel : public UIPanel {

@@ -1,5 +1,6 @@
 #include "ShaderLoader.h"
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 
 // Load a shader from a file
 std::string ShaderLoader::LoadShader(const char* filePath) {

@@ -106,6 +106,9 @@ target_link_libraries(imgui PRIVATE glfw glad_gl_core_43)
 find_package(OpenGL REQUIRED)
 
 add_executable(voxel_editor)
+
+target_compile_features(voxel_editor PRIVATE cxx_std_20)
+
 target_sources(voxel_editor PRIVATE
     "src/Voxel/main.cpp"
     "src/Voxel/Application.cpp"

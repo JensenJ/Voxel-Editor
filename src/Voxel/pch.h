@@ -25,10 +25,3 @@
 // GLM
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-// Voxel Editor
-#include <Voxel/Application.h>
-#include <Voxel/ECS/Entity.h>
-#include <Voxel/ECS/EntityRegistry.h>
-#include <Voxel/InputManager.h>
-#include <Voxel/Log/Log.h>

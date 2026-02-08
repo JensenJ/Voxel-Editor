@@ -1,5 +1,6 @@
 #include "InputManager.h"
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 #include <Voxel/Camera.h>
 
 InputManager* InputManager::instance = nullptr;

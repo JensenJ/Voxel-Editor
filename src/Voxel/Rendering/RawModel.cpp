@@ -1,5 +1,6 @@
 #include "RawModel.h"
 #include <Voxel/pch.h>
+#include <Voxel/Core.h>
 
 RawModel::RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indices) {
     this->vertices = vertices;
