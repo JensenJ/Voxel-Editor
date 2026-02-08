@@ -11,6 +11,12 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS "Applying static linking flags for MinGW")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -static-libgcc -static-libstdc++ -static")
+    set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -static-libgcc -static-libstdc++ -static")
+endif()
+
 option(ENABLE_CLANG_TIDY "Enable clang-tidy analysis" OFF)
 
 #This only runs on windows
