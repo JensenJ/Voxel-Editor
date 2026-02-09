@@ -87,7 +87,7 @@ struct TransformComponent {
             ImGui::PushItemWidth(-1);
             ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, speed, 0.0f, 0.0f, "%.1f",
                              ImGuiSliderFlags_NoRoundToFormat);
-                             
+
             ImGui::PopItemWidth();
             ImGui::EndGroup();
         };

@@ -77,7 +77,7 @@ void MainUI::Initialise() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
-    io.ConfigDragClickToInputText = true; //Single click to modify slider value directly
+    io.ConfigDragClickToInputText = true; // Single click to modify slider value directly
 
     ImGui::StyleColorsDark();
     ImGui::GetStyle().ScaleAllSizes(uiScale);
