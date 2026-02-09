@@ -11,6 +11,7 @@ struct TransformComponent {
 
     glm::vec3 position{0.0f};
     glm::quat rotation{1, 0, 0, 0};
+    glm::vec3 eulerRotation{0, 0, 0};
     glm::vec3 scale{1.0f};
 
     glm::mat4 transform{1.0f};
@@ -72,15 +73,11 @@ struct TransformComponent {
     glm::quat GetRotationQuat() const { return rotation; }
 
     void RenderComponentPanel() {
-        ImGui::SeparatorText("Position");
-        ImGui::Spacing();
+        const float dragSpeedPos = 1.0f;
+        const float dragSpeedRot = 1.0f;
+        const float dragSpeedScale = 0.01f;
 
-        ImGui::PushID("Position");
-
-        const float labelWidth = 16.0f;
-        const float dragSpeed = 1.0f;
-
-        auto drawAxis = [&](const char* label, ImVec4 color, float& value) {
+        auto drawAxis = [&](const char* label, ImVec4 color, float& value, float speed) {
             ImGui::BeginGroup();
             ImGui::PushStyleColor(ImGuiCol_Text, color);
             ImGui::TextUnformatted(label);
@@ -88,17 +85,44 @@ struct TransformComponent {
 
             ImGui::SameLine();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, dragSpeed, 0.0f, 0.0f,
-                             "%.0f");
+            ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, speed, 0.0f, 0.0f, "%.1f",
+                             ImGuiSliderFlags_NoRoundToFormat);
+                             
             ImGui::PopItemWidth();
             ImGui::EndGroup();
         };
 
-        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), position.x);
-        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), position.y);
-        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), position.z);
+        ImGui::SeparatorText("Position");
+        ImGui::Spacing();
 
-        UpdateTransform();
+        ImGui::PushID("Position");
+
+        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), position.x, dragSpeedPos);
+        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), position.y, dragSpeedPos);
+        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), position.z, dragSpeedPos);
+
         ImGui::PopID();
+
+        ImGui::SeparatorText("Rotation");
+        ImGui::Spacing();
+        ImGui::PushID("Rotation");
+
+        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), eulerRotation.x, dragSpeedRot);
+        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), eulerRotation.y, dragSpeedRot);
+        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), eulerRotation.z, dragSpeedRot);
+
+        ImGui::PopID();
+
+        ImGui::SeparatorText("Scale");
+        ImGui::Spacing();
+        ImGui::PushID("Scale");
+
+        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), scale.x, dragSpeedScale);
+        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), scale.y, dragSpeedScale);
+        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), scale.z, dragSpeedScale);
+
+        ImGui::PopID();
+
+        SetRotationEulerDegrees(eulerRotation);
     }
 };
