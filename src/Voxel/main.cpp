@@ -6,7 +6,7 @@
 #include <Voxel/ECS/Components/MeshComponent.h>
 #include <Voxel/ECS/Components/MetaComponent.h>
 #include <Voxel/ECS/Components/TransformComponent.h>
-#include <Voxel/Rendering/EntityRenderer.h>
+#include <Voxel/ECS/Systems/RenderSystem.h>
 #include <Voxel/Rendering/RawModel.h>
 #include <Voxel/Rendering/ShaderLoader.h>
 
@@ -55,7 +55,7 @@ int main() {
     std::vector<unsigned int> indicesVector(std::begin(indices), std::end(indices));
 
     RawModel testModel = RawModel(verticesVector, indicesVector);
-    EntityRenderer renderer = EntityRenderer();
+    Camera* camera = application->GetCamera();
 
     EntityRegistry* entityRegistry = EntityRegistry::GetInstance();
     if (entityRegistry == nullptr) {
@@ -63,14 +63,15 @@ int main() {
         return -2;
     }
 
-    // Basic Input binding
+    RenderSystem::Init(application, camera, entityRegistry);
+
     InputManager* inputManager = InputManager::GetInstance();
     if (inputManager == nullptr) {
         LOG_FATAL("Failed to get input manager");
         return -3;
     }
 
-    inputManager->BindNewKey(GLFW_KEY_9, GLFW_PRESS, 0, ToggleWireframeMode);
+    inputManager->BindNewKey(GLFW_KEY_F1, GLFW_PRESS, 0, ToggleWireframeMode);
     inputManager->BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
 
     // Create entities
@@ -99,33 +100,10 @@ int main() {
         if (camera == nullptr) {
             glfwTerminate();
             LOG_FATAL("Failed to get camera");
-            return -3;
+            return -4;
         };
-
         camera->ProcessInput(application->GetWindow());
-
-        glm::mat4 view = camera->GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(camera->GetZoom()),
-                                                (float)application->GetSceneViewportWidth() /
-                                                    (float)application->GetSceneViewportHeight(),
-                                                0.1f, 100.0f);
-
-        application->GetActiveShader()->SetMat4("view", view);
-        application->GetActiveShader()->SetMat4("projection", projection);
-
-        for (auto [e, transform, mesh, meta] :
-             entityRegistry
-                 ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
-
-            if (!meta.visible)
-                continue;
-
-            application->GetActiveShader()->SetMat4("model", transform.transform);
-            if (mesh.model)
-                renderer.Render(*mesh.model);
-            else
-                LOG_ERROR("Mesh not found");
-        }
+        RenderSystem::Run();
 
         application->EndFrame();
     }

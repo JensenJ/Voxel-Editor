@@ -46,6 +46,9 @@ void Application::Shutdown() {
 
     delete this->activeShaderProgram;
     this->activeShaderProgram = nullptr;
+
+    delete this->camera;
+    this->camera = nullptr;
 }
 
 void Application::InitialiseOpenGl() {
