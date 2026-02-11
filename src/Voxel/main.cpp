@@ -8,6 +8,7 @@
 #include <Voxel/ECS/Components/TransformComponent.h>
 #include <Voxel/ECS/Systems/RenderSystem.h>
 #include <Voxel/ECS/Systems/TransformSystem.h>
+#include <Voxel/ECS/Systems/VisibilitySystem.h>
 #include <Voxel/Rendering/RawModel.h>
 #include <Voxel/Rendering/ShaderLoader.h>
 
@@ -66,6 +67,7 @@ int main() {
 
     RenderSystem::Init(application, camera, entityRegistry);
     TransformSystem::Init(entityRegistry);
+    VisibilitySystem::Init(entityRegistry);
 
     InputManager* inputManager = InputManager::GetInstance();
     if (inputManager == nullptr) {
@@ -106,6 +108,7 @@ int main() {
             return -4;
         };
         camera->ProcessInput(application->GetWindow());
+        VisibilitySystem::Run();
         TransformSystem::Run();
         RenderSystem::Run();
 

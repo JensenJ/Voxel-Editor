@@ -3,14 +3,25 @@
 #include <Voxel/Core.h>
 
 struct MetaComponent {
+  private:
+    static inline bool visibilityDirty = true;
+
+  public:
     static constexpr const char* ComponentName = "Information";
     Entity entity;
 
     std::string name{"Entity"};
-    bool visible{true};
+    bool visibility{true};
+    bool effectiveVisibility{true};
 
     MetaComponent() = default;
-    MetaComponent(const std::string& n, bool vis = true) : name(n), visible(vis) {}
+    MetaComponent(const std::string& n, bool vis = true) : name(n), visibility(vis) {}
+
+    static void MarkVisibilityDirty() { visibilityDirty = true; }
+
+    static void MarkVisibilityClean() { visibilityDirty = false; }
+
+    static bool IsVisibilityDirty() { return visibilityDirty; }
 
     void RenderComponentPanel() {
         // ImGui needs a mutable char buffer
@@ -38,7 +49,9 @@ struct MetaComponent {
             ImGui::TextUnformatted("Visible");
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Checkbox("##Visible", &visible);
+            if (ImGui::Checkbox("##Visible", &visibility)) {
+                MetaComponent::MarkVisibilityDirty();
+            }
 
             ImGui::EndTable();
         }

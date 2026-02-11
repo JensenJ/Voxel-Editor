@@ -29,7 +29,7 @@ class RenderSystem {
              entityRegistry
                  ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
 
-            if (!meta.visible)
+            if (!meta.effectiveVisibility)
                 continue;
 
             application->GetActiveShader()->SetMat4("model", transform.worldMatrix);

@@ -29,6 +29,7 @@ class HierarchyPanel : public UIPanel {
         newParentHierarchy->AddChild(child);
 
         transform->MarkDirty();
+        MetaComponent::MarkVisibilityDirty();
     }
 
     bool IsDescendant(EntityRegistry* registry, Entity possibleParent, Entity entity) {
@@ -58,8 +59,17 @@ class HierarchyPanel : public UIPanel {
         if (entity == registry->GetSelectedEntity())
             flags |= ImGuiTreeNodeFlags_Selected;
 
+        if (!meta->effectiveVisibility) {
+            ImVec4 col = ImGui::GetStyleColorVec4(ImGuiCol_Text);
+            col.w *= 0.4f;
+            ImGui::PushStyleColor(ImGuiCol_Text, col);
+        }
+
         bool opened =
             ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, "%s", meta->name.c_str());
+
+        if (!meta->effectiveVisibility)
+            ImGui::PopStyleColor();
 
         if (ImGui::IsItemClicked()) {
             registry->SelectEntity(entity);
