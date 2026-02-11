@@ -14,7 +14,6 @@ struct HierarchyComponent {
         parentHierarchy->AddChild(entity);
     }
 
-  public:
     void AddChild(Entity entity) { children.insert(entity); }
     void RemoveChild(Entity entity) { children.erase(entity); }
     bool HasParent() const { return parent != InvalidEntity; }

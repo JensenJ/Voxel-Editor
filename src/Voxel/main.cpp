@@ -86,6 +86,7 @@ int main() {
                 auto& transform =
                     entityRegistry->AddComponent<TransformComponent>(entity, glm::vec3(x, y, z));
                 auto& mesh = entityRegistry->AddComponent<MeshComponent>(entity, &testModel);
+                auto& hierarchy = entityRegistry->AddComponent<HierarchyComponent>(entity);
             }
         }
     }

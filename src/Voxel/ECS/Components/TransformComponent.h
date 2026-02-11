@@ -4,11 +4,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <Voxel/ECS/Components/HierarchyComponent.h>
 
 struct TransformComponent {
-    static constexpr const char* ComponentName = "Transform";
+  private:
+    bool dirty = true;
 
   public:
+    static constexpr const char* ComponentName = "Transform";
     Entity entity;
 
     glm::vec3 position{0.0f};
@@ -18,8 +21,6 @@ struct TransformComponent {
 
     glm::mat4 localMatrix{1.0f};
     glm::mat4 worldMatrix{1.0f};
-
-    bool dirty = true;
 
     TransformComponent() = default;
 
@@ -72,8 +73,24 @@ struct TransformComponent {
         glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
 
         localMatrix = t * r * s;
-        dirty = true;
+        MarkDirty();
     }
+
+    void MarkDirty() {
+        EntityRegistry* registry = EntityRegistry::GetInstance();
+        dirty = true;
+        if (!registry->HasComponent<HierarchyComponent>(entity))
+            return;
+        HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(entity);
+
+        // When this transform is dirty, we need to update all children recursively
+        for (Entity child : hierarchy->children) {
+            TransformComponent* childTransform = registry->GetComponent<TransformComponent>(child);
+            childTransform->MarkDirty();
+        }
+    }
+    void MarkClean() { dirty = false; }
+    bool IsDirty() const { return dirty; }
 
     glm::vec3 GetRotationEulerDegrees() const { return glm::degrees(glm::eulerAngles(rotation)); }
     glm::quat GetRotationQuat() const { return rotation; }

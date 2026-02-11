@@ -27,9 +27,9 @@ class TransformSystem {
             if (entityRegistry->HasComponent<HierarchyComponent>(entity))
                 continue;
 
-            if (transform.dirty) {
+            if (transform.IsDirty()) {
                 transform.worldMatrix = transform.localMatrix;
-                transform.dirty = false;
+                transform.MarkClean();
             }
         }
     }
@@ -40,9 +40,9 @@ class TransformSystem {
     static void UpdateRecursive(Entity entity, const glm::mat4& parentWorld) {
         TransformComponent* transform = entityRegistry->GetComponent<TransformComponent>(entity);
 
-        if (transform->dirty) {
+        if (transform->IsDirty()) {
             transform->worldMatrix = parentWorld * transform->localMatrix;
-            transform->dirty = false;
+            transform->MarkClean();
         }
 
         if (!entityRegistry->HasComponent<HierarchyComponent>(entity))
