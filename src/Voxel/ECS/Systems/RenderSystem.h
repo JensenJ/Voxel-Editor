@@ -20,7 +20,7 @@ class RenderSystem {
         glm::mat4 projection = glm::perspective(glm::radians(camera->GetZoom()),
                                                 (float)application->GetSceneViewportWidth() /
                                                     (float)application->GetSceneViewportHeight(),
-                                                0.1f, 100.0f);
+                                                0.1f, 10000.0f);
 
         application->GetActiveShader()->SetMat4("view", view);
         application->GetActiveShader()->SetMat4("projection", projection);

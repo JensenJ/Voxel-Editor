@@ -3,6 +3,7 @@
 #include <Voxel/Core.h>
 #include <Voxel/ECS/Components/HierarchyComponent.h>
 #include <Voxel/ECS/Components/MetaComponent.h>
+#include <Voxel/ECS/Systems/TransformSystem.h>
 #include <Voxel/UI/UIPanel.h>
 
 class HierarchyPanel : public UIPanel {
@@ -10,42 +11,6 @@ class HierarchyPanel : public UIPanel {
     const char* GetPanelName() override { return "Hierarchy"; }
 
   private:
-    void Reparent(EntityRegistry* registry, Entity child, Entity newParent) {
-        HierarchyComponent* childHierarchy = registry->GetComponent<HierarchyComponent>(child);
-        TransformComponent* transform = registry->GetComponent<TransformComponent>(child);
-
-        // Remove from old parent
-        if (childHierarchy->parent != InvalidEntity) {
-            HierarchyComponent* oldParentHierarchy =
-                registry->GetComponent<HierarchyComponent>(childHierarchy->parent);
-
-            oldParentHierarchy->RemoveChild(child);
-        }
-
-        // Setup new relationship
-        childHierarchy->parent = newParent;
-        HierarchyComponent* newParentHierarchy =
-            registry->GetComponent<HierarchyComponent>(newParent);
-        newParentHierarchy->AddChild(child);
-
-        transform->MarkDirty();
-        MetaComponent::MarkVisibilityDirty();
-    }
-
-    bool IsDescendant(EntityRegistry* registry, Entity possibleParent, Entity entity) {
-        HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(possibleParent);
-
-        for (Entity child : hierarchy->children) {
-            if (child == entity)
-                return true;
-
-            if (IsDescendant(registry, child, entity))
-                return true;
-        }
-
-        return false;
-    }
-
     void DrawEntityNode(EntityRegistry* registry, Entity entity) {
         MetaComponent* meta = registry->GetComponent<MetaComponent>(entity);
         HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(entity);
@@ -85,9 +50,10 @@ class HierarchyPanel : public UIPanel {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_ENTITY")) {
                 Entity dropped = *(Entity*)payload->Data;
 
-                if (dropped != entity && !IsDescendant(registry, dropped, entity)) // prevent cycles
+                if (dropped != entity &&
+                    !TransformSystem::IsDescendant(dropped, entity)) // prevent cycles
                 {
-                    Reparent(registry, dropped, entity);
+                    TransformSystem::Reparent(dropped, entity);
                 }
             }
             ImGui::EndDragDropTarget();

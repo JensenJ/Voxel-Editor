@@ -44,8 +44,8 @@ void Camera::ProcessInput(GLFWwindow* window) {
     // Force ImGUI mouse position to be unavailable to prevent accidental clicking on other panels
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
-        velocity *= 5.0f;
+    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_CONTROL))
+        velocity *= 3.0f;
 
     if (InputManager::IsKeyDown(window, GLFW_KEY_W))
         position += front * velocity;
@@ -55,9 +55,9 @@ void Camera::ProcessInput(GLFWwindow* window) {
         position -= right * velocity;
     if (InputManager::IsKeyDown(window, GLFW_KEY_D))
         position += right * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_Q))
+    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
         position -= up * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_E))
+    if (InputManager::IsKeyDown(window, GLFW_KEY_SPACE))
         position += up * velocity;
 }
 
