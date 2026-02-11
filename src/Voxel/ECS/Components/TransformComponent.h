@@ -7,6 +7,8 @@
 
 struct TransformComponent {
     static constexpr const char* ComponentName = "Transform";
+
+  public:
     Entity entity;
 
     glm::vec3 position{0.0f};
@@ -14,7 +16,10 @@ struct TransformComponent {
     glm::vec3 eulerRotation{0, 0, 0};
     glm::vec3 scale{1.0f};
 
-    glm::mat4 transform{1.0f};
+    glm::mat4 localMatrix{1.0f};
+    glm::mat4 worldMatrix{1.0f};
+
+    bool dirty = true;
 
     TransformComponent() = default;
 
@@ -66,7 +71,8 @@ struct TransformComponent {
         glm::mat4 r = glm::toMat4(rotation);
         glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
 
-        transform = t * r * s;
+        localMatrix = t * r * s;
+        dirty = true;
     }
 
     glm::vec3 GetRotationEulerDegrees() const { return glm::degrees(glm::eulerAngles(rotation)); }
@@ -77,6 +83,8 @@ struct TransformComponent {
         const float dragSpeedRot = 1.0f;
         const float dragSpeedScale = 0.01f;
 
+        bool changed = false;
+
         auto drawAxis = [&](const char* label, ImVec4 color, float& value, float speed) {
             ImGui::BeginGroup();
             ImGui::PushStyleColor(ImGuiCol_Text, color);
@@ -85,11 +93,12 @@ struct TransformComponent {
 
             ImGui::SameLine();
             ImGui::PushItemWidth(-1);
-            ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, speed, 0.0f, 0.0f, "%.1f",
-                             ImGuiSliderFlags_NoRoundToFormat);
+            bool changed = ImGui::DragFloat(("##" + std::string(label)).c_str(), &value, speed,
+                                            0.0f, 0.0f, "%.1f", ImGuiSliderFlags_NoRoundToFormat);
 
             ImGui::PopItemWidth();
             ImGui::EndGroup();
+            return changed;
         };
 
         ImGui::SeparatorText("Position");
@@ -97,9 +106,9 @@ struct TransformComponent {
 
         ImGui::PushID("Position");
 
-        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), position.x, dragSpeedPos);
-        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), position.y, dragSpeedPos);
-        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), position.z, dragSpeedPos);
+        changed |= drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), position.x, dragSpeedPos);
+        changed |= drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), position.y, dragSpeedPos);
+        changed |= drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), position.z, dragSpeedPos);
 
         ImGui::PopID();
 
@@ -107,9 +116,9 @@ struct TransformComponent {
         ImGui::Spacing();
         ImGui::PushID("Rotation");
 
-        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), eulerRotation.x, dragSpeedRot);
-        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), eulerRotation.y, dragSpeedRot);
-        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), eulerRotation.z, dragSpeedRot);
+        changed |= drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), eulerRotation.x, dragSpeedRot);
+        changed |= drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), eulerRotation.y, dragSpeedRot);
+        changed |= drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), eulerRotation.z, dragSpeedRot);
 
         ImGui::PopID();
 
@@ -117,12 +126,13 @@ struct TransformComponent {
         ImGui::Spacing();
         ImGui::PushID("Scale");
 
-        drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), scale.x, dragSpeedScale);
-        drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), scale.y, dragSpeedScale);
-        drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), scale.z, dragSpeedScale);
+        changed |= drawAxis("X", ImVec4(0.90f, 0.25f, 0.25f, 1.0f), scale.x, dragSpeedScale);
+        changed |= drawAxis("Y", ImVec4(0.25f, 0.90f, 0.25f, 1.0f), scale.y, dragSpeedScale);
+        changed |= drawAxis("Z", ImVec4(0.25f, 0.45f, 0.90f, 1.0f), scale.z, dragSpeedScale);
 
         ImGui::PopID();
 
-        SetRotationEulerDegrees(eulerRotation);
+        if (changed)
+            SetRotationEulerDegrees(eulerRotation);
     }
 };

@@ -32,7 +32,7 @@ class RenderSystem {
             if (!meta.visible)
                 continue;
 
-            application->GetActiveShader()->SetMat4("model", transform.transform);
+            application->GetActiveShader()->SetMat4("model", transform.worldMatrix);
             if (mesh.model)
                 renderer.Render(*mesh.model);
             else

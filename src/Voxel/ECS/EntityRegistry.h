@@ -27,7 +27,7 @@ class EntityRegistry {
 
     template <typename T> T* GetComponent(Entity e) { return GetStorage<T>().Get(e); }
 
-    template <typename T> bool HasComponent(Entity e) const { return GetStorage<T>().Has(e); }
+    template <typename T> bool HasComponent(Entity e) { return GetStorage<T>().Has(e); }
 
     template <typename T> bool RemoveComponent(Entity e) { return GetStorage<T>().Remove(e); }
 
