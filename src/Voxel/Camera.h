@@ -2,11 +2,12 @@
 #include <Voxel/pch.h>
 
 // Default camera values
-const float YAW = -90.0f;
-const float PITCH = 0.0f;
+const float YAW = -45.0f;
+const float PITCH = -30.0f;
 const float MOVEMENTSPEED = 10.0f;
 const float SENSITIVITY = 0.1f;
 const float ZOOM = 45.0f;
+const glm::vec3 POSITION = glm::vec3(-4.1f, 4.6f, 5.0f);
 
 class Camera {
   private:
@@ -27,7 +28,7 @@ class Camera {
 
   public:
     // constructor with vectors
-    Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), float yaw = YAW, float pitch = PITCH,
+    Camera(glm::vec3 position = POSITION, float yaw = YAW, float pitch = PITCH,
            float movementSpeed = MOVEMENTSPEED, float mouseSensitivity = SENSITIVITY,
            float zoom = ZOOM);
 

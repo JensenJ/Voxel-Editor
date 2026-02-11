@@ -41,6 +41,9 @@ class TransformSystem {
             entityRegistry->GetComponent<HierarchyComponent>(child);
         TransformComponent* transform = entityRegistry->GetComponent<TransformComponent>(child);
 
+        if (childHierarchy->parent == newParent)
+            return;
+
         // Save old world matrix
         glm::mat4 world = transform->worldMatrix;
 
@@ -70,11 +73,12 @@ class TransformSystem {
 
                 DecomposeTransform(newLocal, transform->position, transform->rotation,
                                    transform->scale);
-                transform->UpdateTransform();
             }
+        } else {
+            DecomposeTransform(world, transform->position, transform->rotation, transform->scale);
         }
 
-        transform->MarkDirty();
+        transform->UpdateTransform();
         MetaComponent::MarkVisibilityDirty();
     }
 
@@ -98,6 +102,7 @@ class TransformSystem {
         glm::vec3 skew;
         glm::vec4 perspective;
         glm::decompose(mat, scale, rotation, position, skew, perspective);
+        rotation = glm::normalize(rotation);
     }
 
   private:

@@ -15,6 +15,9 @@ class HierarchyPanel : public UIPanel {
         MetaComponent* meta = registry->GetComponent<MetaComponent>(entity);
         HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(entity);
 
+        if (!meta || !hierarchy)
+            return;
+
         ImGuiTreeNodeFlags flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
@@ -41,13 +44,13 @@ class HierarchyPanel : public UIPanel {
         }
 
         if (ImGui::BeginDragDropSource()) {
-            ImGui::SetDragDropPayload("DND_ENTITY", &entity, sizeof(Entity));
-            ImGui::Text("%s", meta->name.c_str());
+            ImGui::SetDragDropPayload("HIERARCHY_ENTITY", &entity, sizeof(Entity));
+            ImGui::Text("Reparent %s", meta->name.c_str());
             ImGui::EndDragDropSource();
         }
 
         if (ImGui::BeginDragDropTarget()) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("DND_ENTITY")) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
                 Entity dropped = *(Entity*)payload->Data;
 
                 if (dropped != entity &&
@@ -80,6 +83,15 @@ class HierarchyPanel : public UIPanel {
             if (!hierarchy.HasParent()) {
                 DrawEntityNode(registry, entity);
             }
+        }
+
+        if (ImGui::BeginDragDropTargetCustom(ImGui::GetCurrentWindow()->Rect(),
+                                             ImGui::GetID("HierarchyRootDrop"))) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
+                Entity dropped = *(Entity*)payload->Data;
+                TransformSystem::Reparent(dropped, InvalidEntity);
+            }
+            ImGui::EndDragDropTarget();
         }
     }
 

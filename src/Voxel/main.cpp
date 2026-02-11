@@ -93,6 +93,7 @@ int main() {
         }
     }
 
+    LOG_INFO("Initialisation complete");
     while (application->ShouldStayOpen()) {
         application->StartFrame();
 
