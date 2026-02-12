@@ -47,6 +47,8 @@ class Profiler {
     static inline double uiViewport;
     static inline double uiHierarchy;
     static inline double uiLogging;
+    static inline double uiLoggingCopyBuffer;
+    static inline double uiLoggingRender;
 
     static inline double system;
     static inline double systemRender;
@@ -63,6 +65,8 @@ class Profiler {
     static inline FrameTimer<> uiViewportAvg;
     static inline FrameTimer<> uiHierarchyAvg;
     static inline FrameTimer<> uiLoggingAvg;
+    static inline FrameTimer<> uiLoggingCopyBufferAvg;
+    static inline FrameTimer<> uiLoggingRenderAvg;
 
     static inline FrameTimer<> systemAvg;
     static inline FrameTimer<> systemRenderAvg;
@@ -82,6 +86,8 @@ class Profiler {
         uiViewportAvg.AddSample(uiViewport);
         uiHierarchyAvg.AddSample(uiHierarchy);
         uiLoggingAvg.AddSample(uiLogging);
+        uiLoggingCopyBufferAvg.AddSample(uiLoggingCopyBuffer);
+        uiLoggingRenderAvg.AddSample(uiLoggingRender);
 
         systemAvg.AddSample(system);
         systemRenderAvg.AddSample(systemRender);

@@ -18,13 +18,23 @@ class LogPanel : public UIPanel {
             return;
         }
 
-        auto logs = logSink->GetBufferCopy();
+        {
+            ScopedTimer timer(Profiler::uiLoggingCopyBuffer);
+            if (logSink->updated) {
+                logBufferCopy = logSink->GetBufferCopy();
+                logSink->updated = false;
+            }
+        }
 
-        static ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
-                                       ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY |
-                                       ImGuiTableFlags_Reorderable;
+        {
+            ScopedTimer timer(Profiler::uiLoggingRender);
+            static ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
+                                           ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY |
+                                           ImGuiTableFlags_Reorderable;
 
-        if (ImGui::BeginTable("LogTable", 5, flags)) {
+            if (!ImGui::BeginTable("LogTable", 5, flags))
+                return;
+
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed, 140.0f);
             ImGui::TableSetupColumn("Time", ImGuiTableColumnFlags_WidthFixed, 160.0f);
@@ -33,43 +43,37 @@ class LogPanel : public UIPanel {
             ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch);
             ImGui::TableHeadersRow();
 
-            for (const auto& entry : logs) {
-                ImGui::TableNextRow();
+            ImGuiListClipper clipper;
+            clipper.Begin(static_cast<int>(logBufferCopy.size()));
+            while (clipper.Step()) {
+                for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+                    const auto& entry = logBufferCopy[i];
+                    ImGui::TableNextRow();
 
-                auto tp = entry.time;
-                auto secs = std::chrono::time_point_cast<std::chrono::seconds>(tp);
-                auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(tp - secs).count();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%04d-%02d-%02d", entry.time.tm_year + 1900, entry.time.tm_mon + 1,
+                                entry.time.tm_mday);
 
-                // Convert timestamp once per row
-                auto tt = std::chrono::system_clock::to_time_t(secs);
-                std::tm tm{};
-#if defined(_WIN32) || defined(_WIN64)
-                localtime_s(&tm, &tt);
-#else
-                localtime_r(&tt, &tm);
-#endif
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%02d:%02d:%02d.%03ld", entry.time.tm_hour, entry.time.tm_min,
+                                entry.time.tm_sec, entry.ms);
 
-                ImGui::TableNextColumn();
-                ImGui::Text("%04d-%02d-%02d", tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday);
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%lu", entry.thread_id);
 
-                ImGui::TableNextColumn();
-                ImGui::Text("%02d:%02d:%02d.%03ld", tm.tm_hour, tm.tm_min, tm.tm_sec, ms);
+                    ImGui::TableNextColumn();
+                    DrawSeverity(entry.level);
 
-                ImGui::TableNextColumn();
-                ImGui::Text("%lu", entry.thread_id);
-
-                ImGui::TableNextColumn();
-                DrawSeverity(entry.level);
-
-                ImGui::TableNextColumn();
-                ImGui::PushTextWrapPos(0.0f);
-                ImGui::TextUnformatted(entry.message.c_str());
-                ImGui::PopTextWrapPos();
+                    ImGui::TableNextColumn();
+                    ImGui::PushTextWrapPos(0.0f);
+                    ImGui::TextUnformatted(entry.message.c_str());
+                    ImGui::PopTextWrapPos();
+                }
             }
 
             ImGui::EndTable();
         }
-    };
+    }
 
     static void DrawSeverity(spdlog::level::level_enum level) {
         const char* text = "";
@@ -113,4 +117,7 @@ class LogPanel : public UIPanel {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
         return 1;
     }
+
+  private:
+    std::vector<LogEntry> logBufferCopy = std::vector<LogEntry>();
 };
