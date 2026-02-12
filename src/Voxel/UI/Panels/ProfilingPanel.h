@@ -98,10 +98,14 @@ class ProfilingPanel : public UIPanel {
         {"Copy Buffer", &Profiler::ui_logging_copyBuffer, nullptr, 0},
         {"Render", &Profiler::ui_logging_render, nullptr, 0}};
 
+    static inline ProfilerNode uiHierarchyChildren[] = {
+        {"Build List", &Profiler::ui_hierarchy_buildList, nullptr, 0},
+        {"Render", &Profiler::ui_hierarchy_render, nullptr, 0}};
+
     static inline ProfilerNode uiChildren[] = {
         {"Viewport", &Profiler::ui_viewport, nullptr, 0},
         {"Components", &Profiler::ui_component, nullptr, 0},
-        {"Hierarchy", &Profiler::ui_hierarchy, nullptr, 0},
+        {"Hierarchy", &Profiler::ui_hierarchy, uiHierarchyChildren, 2},
         {"Logging", &Profiler::ui_logging, uiLoggingChildren, 2},
         {"Profiling", &Profiler::ui_profiling, nullptr, 0}};
 

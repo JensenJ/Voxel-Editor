@@ -7,20 +7,59 @@
 #include <Voxel/ECS/Systems/TransformSystem.h>
 #include <Voxel/UI/UIPanel.h>
 
+struct VisibleNode {
+    Entity entity;
+    MetaComponent* meta;
+    HierarchyComponent* hierarchy;
+    int depth;
+};
+
 class HierarchyPanel : public UIPanel {
   public:
     const char* GetPanelName() override { return "Hierarchy"; }
 
   private:
-    void DrawEntityNode(EntityRegistry* registry, Entity entity) {
+    void BuildVisibleList(EntityRegistry* registry) {
+        VisibleNodes.clear();
+
+        auto view = registry->MakeView<const MetaComponent, const HierarchyComponent>();
+
+        for (auto&& [entity, meta, hierarchy] : view) {
+            if (!hierarchy.HasParent()) {
+                AddEntityRecursive(registry, entity, 0);
+            }
+        }
+    }
+
+    void AddEntityRecursive(EntityRegistry* registry, Entity entity, int depth) {
         MetaComponent* meta = registry->GetComponent<MetaComponent>(entity);
         HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(entity);
 
         if (!meta || !hierarchy)
             return;
 
+        VisibleNodes.push_back({entity, meta, hierarchy, depth});
+
+        if (!expanded[entity])
+            return;
+
+        for (Entity child : hierarchy->children) {
+            AddEntityRecursive(registry, child, depth + 1);
+        }
+    }
+
+    void DrawVisibleNode(EntityRegistry* registry, VisibleNode& node) {
+        Entity entity = node.entity;
+        MetaComponent* meta = node.meta;
+        HierarchyComponent* hierarchy = node.hierarchy;
+
+        ImGui::Indent(node.depth * 35.0f);
+
         ImGuiTreeNodeFlags flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+        if (expanded[entity])
+            flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
         if (hierarchy->children.empty())
             flags |= ImGuiTreeNodeFlags_Leaf;
@@ -40,9 +79,8 @@ class HierarchyPanel : public UIPanel {
         if (!meta->effectiveVisibility)
             ImGui::PopStyleColor();
 
-        if (ImGui::IsItemClicked()) {
+        if (ImGui::IsItemClicked())
             registry->SelectEntity(entity);
-        }
 
         if (ImGui::BeginDragDropSource()) {
             ImGui::SetDragDropPayload("HIERARCHY_ENTITY", &entity, sizeof(Entity));
@@ -54,46 +92,63 @@ class HierarchyPanel : public UIPanel {
             if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
                 Entity dropped = *(Entity*)payload->Data;
 
-                if (dropped != entity &&
-                    !TransformSystem::IsDescendant(dropped, entity)) // prevent cycles
-                {
+                if (dropped != entity && !TransformSystem::IsDescendant(dropped, entity)) {
                     TransformSystem::Reparent(dropped, entity);
+                    visibleNodesDirty = true;
                 }
             }
             ImGui::EndDragDropTarget();
         }
 
-        if (opened) {
-            for (Entity child : hierarchy->children) {
-                DrawEntityNode(registry, child);
-            }
-
-            ImGui::TreePop();
+        if (opened != expanded[entity]) {
+            expanded[entity] = opened;
+            visibleNodesDirty = true;
         }
+
+        if (opened)
+            ImGui::TreePop();
+
+        ImGui::Unindent(node.depth * 35.0f);
     }
 
     void RenderInternal() override {
         ScopedTimer timer(Profiler::ui_hierarchy.lastFrame);
+
         EntityRegistry* registry = EntityRegistry::GetInstance();
-        if (registry == nullptr) {
+        if (!registry)
             return;
-        }
 
-        for (auto&& [entity, meta, hierarchy] :
-             registry->MakeView<const MetaComponent, const HierarchyComponent>()) {
-
-            if (!hierarchy.HasParent()) {
-                DrawEntityNode(registry, entity);
+        {
+            ScopedTimer timer(Profiler::ui_hierarchy_buildList.lastFrame);
+            if (visibleNodesDirty) {
+                BuildVisibleList(registry);
+                visibleNodesDirty = false;
             }
         }
 
-        if (ImGui::BeginDragDropTargetCustom(ImGui::GetCurrentWindow()->Rect(),
-                                             ImGui::GetID("HierarchyRootDrop"))) {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
-                Entity dropped = *(Entity*)payload->Data;
-                TransformSystem::Reparent(dropped, InvalidEntity);
+        {
+            ScopedTimer timer(Profiler::ui_hierarchy_render.lastFrame);
+
+            ImGuiListClipper clipper;
+            clipper.Begin((int)VisibleNodes.size());
+
+            while (clipper.Step()) {
+                for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
+                    DrawVisibleNode(registry, VisibleNodes[i]);
+                }
             }
-            ImGui::EndDragDropTarget();
+
+            // Root drag target
+            if (ImGui::BeginDragDropTargetCustom(ImGui::GetCurrentWindow()->Rect(),
+                                                 ImGui::GetID("HierarchyRootDrop"))) {
+                if (const ImGuiPayload* payload =
+                        ImGui::AcceptDragDropPayload("HIERARCHY_ENTITY")) {
+                    Entity dropped = *(Entity*)payload->Data;
+                    TransformSystem::Reparent(dropped, InvalidEntity);
+                    visibleNodesDirty = true;
+                }
+                ImGui::EndDragDropTarget();
+            }
         }
     }
 
@@ -102,4 +157,8 @@ class HierarchyPanel : public UIPanel {
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));
         return 2;
     }
+
+    std::vector<VisibleNode> VisibleNodes;
+    std::unordered_map<Entity, bool> expanded;
+    bool visibleNodesDirty = true; // TODO: set to true when components are added or removed
 };

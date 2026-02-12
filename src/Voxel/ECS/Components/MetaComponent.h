@@ -36,6 +36,15 @@ struct MetaComponent {
             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 100.0f);
             ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
 
+            // Entity number
+            ImGui::TableNextRow();
+            ImGui::TableSetColumnIndex(0);
+            ImGui::TextUnformatted("Entity ID");
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%d", entity);
+
+            // Entity name
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::TextUnformatted("Name");
@@ -46,6 +55,7 @@ struct MetaComponent {
                 name = buffer;
             }
 
+            // Entity visibility
             ImGui::TableNextRow();
             ImGui::TableSetColumnIndex(0);
             ImGui::TextUnformatted("Visible");

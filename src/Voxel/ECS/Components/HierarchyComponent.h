@@ -22,8 +22,12 @@ struct HierarchyComponent {
 
     void RenderComponentPanel() {
         EntityRegistry* registry = EntityRegistry::GetInstance();
-        MetaComponent* parentMeta = registry->GetComponent<MetaComponent>(parent);
-        ImGui::Text("Parent: %s", parentMeta->name.c_str());
+        if (parent != InvalidEntity) {
+            MetaComponent* parentMeta = registry->GetComponent<MetaComponent>(parent);
+            ImGui::Text("Parent: %s", parentMeta->name.c_str());
+        } else {
+            ImGui::Text("Parent: None");
+        }
         ImGui::Text("Children: %d", children.size());
         ImGui::Indent();
         for (Entity child : children) {

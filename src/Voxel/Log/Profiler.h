@@ -50,9 +50,12 @@ class Profiler {
     static inline FrameTimer<> ui_profiling;
     static inline FrameTimer<> ui_component;
     static inline FrameTimer<> ui_viewport;
-    static inline FrameTimer<> ui_hierarchy;
-    static inline FrameTimer<> ui_logging;
 
+    static inline FrameTimer<> ui_hierarchy;
+    static inline FrameTimer<> ui_hierarchy_buildList;
+    static inline FrameTimer<> ui_hierarchy_render;
+
+    static inline FrameTimer<> ui_logging;
     static inline FrameTimer<> ui_logging_copyBuffer;
     static inline FrameTimer<> ui_logging_render;
 
@@ -72,7 +75,11 @@ class Profiler {
         ui_profiling.AddSample();
         ui_component.AddSample();
         ui_viewport.AddSample();
+
         ui_hierarchy.AddSample();
+        ui_hierarchy_buildList.AddSample();
+        ui_hierarchy_render.AddSample();
+
         ui_logging.AddSample();
         ui_logging_copyBuffer.AddSample();
         ui_logging_render.AddSample();
