@@ -3,6 +3,19 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 
+struct GraphFrameHistory {
+  public:
+    static constexpr int GRAPH_FRAME_HISTORY_COUNT = 200;
+
+    static inline float values[GRAPH_FRAME_HISTORY_COUNT] = {};
+    static inline int index = 0;
+
+    static void Add(float frameTimeMs) {
+        values[index] = frameTimeMs;
+        index = (index + 1) % GRAPH_FRAME_HISTORY_COUNT;
+    }
+};
+
 template <size_t N = 60> // last N frames
 struct FrameTimer {
     std::array<double, N> samples{};
@@ -59,6 +72,8 @@ class Profiler {
     static inline FrameTimer<> systemVisibilityAvg;
 
     static void UpdateAverages() {
+        GraphFrameHistory::Add(frame);
+
         frameAvg.AddSample(frame);
 
         uiAvg.AddSample(ui);
