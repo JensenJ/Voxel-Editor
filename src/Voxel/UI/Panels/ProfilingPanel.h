@@ -4,15 +4,11 @@
 #include <Voxel/Log/Profiler.h>
 #include <Voxel/UI/UIPanel.h>
 
-#define PROF_NODE(name, timerPtr, ...)                                                             \
-    {                                                                                              \
-        name, timerPtr, { __VA_ARGS__ }                                                            \
-    }
-
 struct ProfilerNode {
     const char* name;
     FrameTimer<>* timer;
-    std::vector<ProfilerNode> children;
+    const ProfilerNode* children;
+    size_t childCount;
 };
 
 class ProfilingPanel : public UIPanel {
@@ -40,35 +36,27 @@ class ProfilingPanel : public UIPanel {
         return ImVec4(1.0f, 0.4f, 0.4f, 1.0f);     // red
     }
 
-    void DrawProfilerNode(ProfilerNode& node, double parentTime, bool isRoot = false) {
+    void DrawProfilerNode(const ProfilerNode& node, double parentTime, bool isRoot = false) {
         const char* name = node.name;
-        double rawTime = node.timer->lastFrame;
         double avgTime = node.timer->GetAverage();
+        double rawTime = node.timer->lastFrame;
         double maxTime = std::max(rawTime, avgTime);
         float ratio = 0.0f;
         if (!isRoot && parentTime > 0.0f)
             ratio = maxTime / parentTime;
-        std::vector<ProfilerNode> children = node.children;
 
-        ImVec4 col;
-        if (isRoot) {
-            float budget = 1000 / targetFPS;
-            col = GetColourForTotalFrame(maxTime / budget);
-        } else {
-            col = GetColourForRatio(ratio);
-        }
+        ImVec4 col = isRoot ? GetColourForTotalFrame((float)(maxTime / frameBudget))
+                            : GetColourForRatio(ratio);
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
                                    ImGuiTreeNodeFlags_DefaultOpen |
                                    ImGuiTreeNodeFlags_DrawLinesFull;
 
-        if (children.empty())
+        if (node.childCount == 0)
             flags |= ImGuiTreeNodeFlags_Leaf;
 
         ImGui::PushStyleColor(ImGuiCol_Text, col);
-        bool opened = ImGui::TreeNodeEx(
-            (std::string("ProfilerNode-") + "##" + name + std::to_string((uintptr_t)&node)).c_str(),
-            flags, "%s", name);
+        bool opened = ImGui::TreeNodeEx((void*)&node, flags, "%s", name);
 
         ImGui::SameLine(250.0f);
         ImGui::Text("%.3f ms", rawTime);
@@ -77,9 +65,8 @@ class ProfilingPanel : public UIPanel {
 
         ImGui::PopStyleColor();
         if (opened) {
-            for (ProfilerNode child : children) {
-                DrawProfilerNode(child, maxTime);
-            }
+            for (size_t i = 0; i < node.childCount; ++i)
+                DrawProfilerNode(node.children[i], maxTime);
             ImGui::TreePop();
         }
     }
@@ -107,23 +94,33 @@ class ProfilingPanel : public UIPanel {
         DrawProfilerNode(root, std::max(root.timer->lastFrame, root.timer->GetAverage()), true);
     }
 
-    ProfilerNode root =
-        PROF_NODE("Frame", &Profiler::frame,
-                  PROF_NODE("UI", &Profiler::ui, PROF_NODE("Viewport", &Profiler::ui_viewport),
-                            PROF_NODE("Components", &Profiler::ui_component),
-                            PROF_NODE("Hierarchy", &Profiler::ui_hierarchy),
-                            PROF_NODE("Logging", &Profiler::ui_logging,
-                                      PROF_NODE("Copy Buffer", &Profiler::ui_logging_copyBuffer),
-                                      PROF_NODE("Render", &Profiler::ui_logging_render)),
-                            PROF_NODE("Profiling", &Profiler::ui_profiling)),
-                  PROF_NODE("System", &Profiler::system,
-                            PROF_NODE("Render", &Profiler::system_render,
-                                      PROF_NODE("Batching", &Profiler::system_render_batching),
-                                      PROF_NODE("Drawing", &Profiler::system_render_draw)),
-                            PROF_NODE("Transform", &Profiler::system_transform),
-                            PROF_NODE("Visibility", &Profiler::system_visibility)));
+    static inline ProfilerNode uiLoggingChildren[] = {
+        {"Copy Buffer", &Profiler::ui_logging_copyBuffer, nullptr, 0},
+        {"Render", &Profiler::ui_logging_render, nullptr, 0}};
+
+    static inline ProfilerNode uiChildren[] = {
+        {"Viewport", &Profiler::ui_viewport, nullptr, 0},
+        {"Components", &Profiler::ui_component, nullptr, 0},
+        {"Hierarchy", &Profiler::ui_hierarchy, nullptr, 0},
+        {"Logging", &Profiler::ui_logging, uiLoggingChildren, 2},
+        {"Profiling", &Profiler::ui_profiling, nullptr, 0}};
+
+    static inline ProfilerNode systemRenderChildren[] = {
+        {"Batching", &Profiler::system_render_batching, nullptr, 0},
+        {"Drawing", &Profiler::system_render_draw, nullptr, 0}};
+
+    static inline ProfilerNode systemChildren[] = {
+        {"Render", &Profiler::system_render, systemRenderChildren, 2},
+        {"Transform", &Profiler::system_transform, nullptr, 0},
+        {"Visibility", &Profiler::system_visibility, nullptr, 0}};
+
+    static inline ProfilerNode frameChildren[] = {{"UI", &Profiler::ui, uiChildren, 5},
+                                                  {"System", &Profiler::system, systemChildren, 3}};
+
+    static inline ProfilerNode root = {"Frame", &Profiler::frame, frameChildren, 2};
 
     int LoadStyles() override { return 0; }
 
     double targetFPS = 60.0f;
+    double frameBudget = 1000.0f / targetFPS;
 };
