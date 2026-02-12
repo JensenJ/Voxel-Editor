@@ -4,9 +4,12 @@
 #include <Voxel/Rendering/RawModel.h>
 
 struct MeshComponent {
+    static constexpr const char* ComponentName = "Mesh";
     Entity entity;
     RawModel* model = nullptr;
 
     MeshComponent() = default;
     explicit MeshComponent(RawModel* m) : model(m) {}
+
+    void RenderComponentPanel() { ImGui::Text("Vertices: %d", model->GetVertexCount()); }
 };

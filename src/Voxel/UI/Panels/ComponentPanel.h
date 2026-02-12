@@ -1,6 +1,8 @@
 #pragma once
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
+#include <Voxel/ECS/Components/HierarchyComponent.h>
+#include <Voxel/ECS/Components/MeshComponent.h>
 #include <Voxel/ECS/Components/MetaComponent.h>
 #include <Voxel/ECS/Components/TransformComponent.h>
 #include <Voxel/ECS/EditorRenderable.h>
@@ -34,7 +36,9 @@ class ComponentPanel : public UIPanel {
             return;
 
         RenderComponentIfPresent<MetaComponent>(*registry, selected);
+        RenderComponentIfPresent<HierarchyComponent>(*registry, selected);
         RenderComponentIfPresent<TransformComponent>(*registry, selected);
+        RenderComponentIfPresent<MeshComponent>(*registry, selected);
     }
 
     int LoadStyles() override { return 0; }

@@ -11,7 +11,7 @@ RawModel::RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indic
 
 unsigned int RawModel::GetVAO() { return VAO; }
 
-int RawModel::GetVertexCount() { return (int)indices.size(); }
+unsigned int RawModel::GetVertexCount() { return (unsigned int)indices.size(); }
 
 void RawModel::DeleteModel() {
     glDeleteVertexArrays(1, &VAO);

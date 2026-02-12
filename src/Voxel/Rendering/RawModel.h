@@ -16,7 +16,7 @@ class RawModel {
     RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
     unsigned int GetVAO();
-    int GetVertexCount();
+    unsigned int GetVertexCount();
     void DeleteModel();
 
   private:
