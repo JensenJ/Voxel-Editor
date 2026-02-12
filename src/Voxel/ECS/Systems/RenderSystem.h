@@ -16,6 +16,7 @@ class RenderSystem {
     }
 
     static void Run() {
+        ScopedTimer timer(Profiler::systemRender);
         glm::mat4 view = camera->GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera->GetZoom()),
                                                 (float)application->GetSceneViewportWidth() /
@@ -26,27 +27,33 @@ class RenderSystem {
         application->GetActiveShader()->SetMat4("projection", projection);
 
         std::unordered_map<RawModel*, std::vector<glm::mat4>> batches;
-        for (auto [e, transform, mesh, meta] :
-             entityRegistry
-                 ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
-            if (!meta.effectiveVisibility)
-                continue;
+        {
+            ScopedTimer timer(Profiler::systemRenderBatching);
+            for (auto [e, transform, mesh, meta] :
+                 entityRegistry->MakeView<const TransformComponent, const MeshComponent,
+                                          const MetaComponent>()) {
+                if (!meta.effectiveVisibility)
+                    continue;
 
-            if (!mesh.model) {
-                LOG_ERROR("Mesh not found");
-                continue;
+                if (!mesh.model) {
+                    LOG_ERROR("Mesh not found");
+                    continue;
+                }
+
+                batches[mesh.model].push_back(transform.worldMatrix);
             }
-
-            batches[mesh.model].push_back(transform.worldMatrix);
         }
-        for (auto& [model, transforms] : batches) {
-            renderer.Bind(*model);
-            for (const glm::mat4& matrix : transforms) {
+        {
+            ScopedTimer timer(Profiler::systemRenderDraw);
+            for (auto& [model, transforms] : batches) {
+                renderer.Bind(*model);
+                for (const glm::mat4& matrix : transforms) {
 
-                application->GetActiveShader()->SetMat4("model", matrix);
-                renderer.Render(*model);
+                    application->GetActiveShader()->SetMat4("model", matrix);
+                    renderer.Render(*model);
+                }
+                renderer.Unbind();
             }
-            renderer.Unbind();
         }
     }
 

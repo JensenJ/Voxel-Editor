@@ -2,12 +2,14 @@
 
 // STL
 #include <algorithm>
+#include <array>
 #include <filesystem>
 #include <fstream>
 #include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <numeric>
 #include <set>
 #include <string>
 #include <unordered_map>

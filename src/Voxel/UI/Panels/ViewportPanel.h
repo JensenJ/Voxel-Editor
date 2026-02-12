@@ -10,6 +10,7 @@ class ViewportPanel : public UIPanel {
 
   private:
     void RenderInternal() override {
+        ScopedTimer timer(Profiler::uiViewport);
         Application* application = Application::GetInstance();
         if (application == nullptr) {
             return;

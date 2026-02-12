@@ -10,6 +10,7 @@
 #include <Voxel/UI/Panels/ComponentPanel.h>
 #include <Voxel/UI/Panels/HierarchyPanel.h>
 #include <Voxel/UI/Panels/LogPanel.h>
+#include <Voxel/UI/Panels/ProfilingPanel.h>
 #include <Voxel/UI/Panels/ViewportPanel.h>
 #include <Voxel/UI/UIPanel.h>
 #include <Voxel/UI/UIStyle.h>
@@ -35,9 +36,15 @@ void MainUI::RegisterPanels() {
         logPanel = panel.get();
         panels.push_back(std::move(panel));
     }
+    {
+        auto panel = std::make_unique<ProfilingPanel>();
+        profilingPanel = panel.get();
+        panels.push_back(std::move(panel));
+    }
 }
 
 void MainUI::RenderUI() {
+    ScopedTimer timer(Profiler::ui);
     SetupFrame();
 
     // Render panels
@@ -137,6 +144,7 @@ void MainUI::BuildDefaultDockLayout(ImGuiID dockspaceID) {
     ImGuiID center = dockspaceID;
     ImGuiID right = ImGui::DockBuilderSplitNode(center, ImGuiDir_Right, 0.2f, nullptr, &center);
     ImGuiID rightTop = ImGui::DockBuilderSplitNode(right, ImGuiDir_Up, 0.25f, nullptr, &right);
+    ImGuiID rightDown = ImGui::DockBuilderSplitNode(right, ImGuiDir_Down, 0.25f, nullptr, &right);
     ImGuiID down = ImGui::DockBuilderSplitNode(center, ImGuiDir_Down, 0.2f, nullptr, &center);
 
     // Dock the windows in the correct place
@@ -144,6 +152,7 @@ void MainUI::BuildDefaultDockLayout(ImGuiID dockspaceID) {
     ImGui::DockBuilderDockWindow(componentPanel->GetPanelName(), right);
     ImGui::DockBuilderDockWindow(hierarchyPanel->GetPanelName(), rightTop);
     ImGui::DockBuilderDockWindow(logPanel->GetPanelName(), down);
+    ImGui::DockBuilderDockWindow(profilingPanel->GetPanelName(), rightDown);
     ImGui::DockBuilderFinish(dockspaceID);
 
     dockLayoutBuilt = true;

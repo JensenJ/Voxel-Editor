@@ -11,6 +11,7 @@ class MainUI {
     static class LogPanel* GetLogPanel();
     static class HierarchyPanel* GetHierarchyPanel();
     static class ComponentPanel* GetComponentPanel();
+    static class ProfilingPanel* GetProfilingPanel();
 
   private:
     static void SetupFrame();
@@ -24,6 +25,7 @@ class MainUI {
     static inline class LogPanel* logPanel = nullptr;
     static inline class HierarchyPanel* hierarchyPanel = nullptr;
     static inline class ComponentPanel* componentPanel = nullptr;
+    static inline class ProfilingPanel* profilingPanel = nullptr;
 
     static inline bool dockLayoutBuilt = false;
     static inline std::vector<std::unique_ptr<UIPanel>> panels =

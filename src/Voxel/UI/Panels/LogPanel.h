@@ -9,6 +9,7 @@ class LogPanel : public UIPanel {
 
   private:
     void RenderInternal() override {
+        ScopedTimer timer(Profiler::uiLogging);
         static bool scrollToBottom = true;
 
         std::shared_ptr<ImGuiSinkMT> logSink = Log::GetImGuiLogSink();

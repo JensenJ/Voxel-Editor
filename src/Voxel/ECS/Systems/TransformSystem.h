@@ -16,6 +16,7 @@ class TransformSystem {
     }
 
     static void Run() {
+        ScopedTimer timer(Profiler::systemTransform);
         if (!TransformComponent::IsAnyDirty())
             return;
 

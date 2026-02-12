@@ -144,13 +144,6 @@ void Application::StartFrame() {
     double currentTime = glfwGetTime();
     this->nbFrames++;
     if (currentTime - lastTime >= 1.0) {
-        std::string title = "Voxel Editor [";
-        title += std::to_string(this->nbFrames);
-        title += " FPS, ";
-        title += std::to_string(1000.0 / double(this->nbFrames));
-        title += " ms]";
-        glfwSetWindowTitle(this->window, title.c_str());
-
         this->nbFrames = 0;
         this->lastTime += 1.0;
     }
@@ -180,7 +173,7 @@ void Application::EndFrame() {
 
     // Render ImGui stuff
     MainUI::RenderUI();
-
+    Profiler::UpdateAverages();
     glfwSwapBuffers(window);
 }
 

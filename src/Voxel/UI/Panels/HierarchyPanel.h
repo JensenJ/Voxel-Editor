@@ -1,4 +1,5 @@
 #pragma once
+
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 #include <Voxel/ECS/Components/HierarchyComponent.h>
@@ -72,6 +73,7 @@ class HierarchyPanel : public UIPanel {
     }
 
     void RenderInternal() override {
+        ScopedTimer timer(Profiler::uiHierarchy);
         EntityRegistry* registry = EntityRegistry::GetInstance();
         if (registry == nullptr) {
             return;
