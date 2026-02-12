@@ -16,85 +16,73 @@ struct GraphFrameHistory {
     }
 };
 
-template <size_t N = 60> // last N frames
+template <size_t N = 120> // last N frames
 struct FrameTimer {
+  private:
     std::array<double, N> samples{};
     size_t index = 0;
     size_t count = 0;
 
-    void AddSample(double ms) {
-        samples[index] = ms;
+    void AddSample() {
+        samples[index] = lastFrame;
         index = (index + 1) % N;
         if (count < N)
             ++count;
     }
 
+  public:
     double GetAverage() const {
         if (count == 0)
             return 0.0;
         double sum = std::accumulate(samples.begin(), samples.begin() + count, 0.0);
         return sum / count;
     }
+
+    double lastFrame = 0;
+    friend class Profiler;
 };
 
 class Profiler {
   public:
-    static inline double frame;
+    static inline FrameTimer<> frame;
 
-    static inline double ui;
-    static inline double uiProfiling;
-    static inline double uiComponent;
-    static inline double uiViewport;
-    static inline double uiHierarchy;
-    static inline double uiLogging;
-    static inline double uiLoggingCopyBuffer;
-    static inline double uiLoggingRender;
+    static inline FrameTimer<> ui;
+    static inline FrameTimer<> ui_profiling;
+    static inline FrameTimer<> ui_component;
+    static inline FrameTimer<> ui_viewport;
+    static inline FrameTimer<> ui_hierarchy;
+    static inline FrameTimer<> ui_logging;
 
-    static inline double system;
-    static inline double systemRender;
-    static inline double systemRenderBatching;
-    static inline double systemRenderDraw;
-    static inline double systemTransform;
-    static inline double systemVisibility;
+    static inline FrameTimer<> ui_logging_copyBuffer;
+    static inline FrameTimer<> ui_logging_render;
 
-    static inline FrameTimer<> frameAvg;
-
-    static inline FrameTimer<> uiAvg;
-    static inline FrameTimer<> uiProfilingAvg;
-    static inline FrameTimer<> uiComponentAvg;
-    static inline FrameTimer<> uiViewportAvg;
-    static inline FrameTimer<> uiHierarchyAvg;
-    static inline FrameTimer<> uiLoggingAvg;
-    static inline FrameTimer<> uiLoggingCopyBufferAvg;
-    static inline FrameTimer<> uiLoggingRenderAvg;
-
-    static inline FrameTimer<> systemAvg;
-    static inline FrameTimer<> systemRenderAvg;
-    static inline FrameTimer<> systemRenderBatchingAvg;
-    static inline FrameTimer<> systemRenderDrawAvg;
-    static inline FrameTimer<> systemTransformAvg;
-    static inline FrameTimer<> systemVisibilityAvg;
+    static inline FrameTimer<> system;
+    static inline FrameTimer<> system_render;
+    static inline FrameTimer<> system_render_batching;
+    static inline FrameTimer<> system_render_draw;
+    static inline FrameTimer<> system_transform;
+    static inline FrameTimer<> system_visibility;
 
     static void UpdateAverages() {
-        GraphFrameHistory::Add(frame);
+        GraphFrameHistory::Add(frame.lastFrame);
 
-        frameAvg.AddSample(frame);
+        frame.AddSample();
 
-        uiAvg.AddSample(ui);
-        uiProfilingAvg.AddSample(uiProfiling);
-        uiComponentAvg.AddSample(uiComponent);
-        uiViewportAvg.AddSample(uiViewport);
-        uiHierarchyAvg.AddSample(uiHierarchy);
-        uiLoggingAvg.AddSample(uiLogging);
-        uiLoggingCopyBufferAvg.AddSample(uiLoggingCopyBuffer);
-        uiLoggingRenderAvg.AddSample(uiLoggingRender);
+        ui.AddSample();
+        ui_profiling.AddSample();
+        ui_component.AddSample();
+        ui_viewport.AddSample();
+        ui_hierarchy.AddSample();
+        ui_logging.AddSample();
+        ui_logging_copyBuffer.AddSample();
+        ui_logging_render.AddSample();
 
-        systemAvg.AddSample(system);
-        systemRenderAvg.AddSample(systemRender);
-        systemRenderBatchingAvg.AddSample(systemRenderBatching);
-        systemRenderDrawAvg.AddSample(systemRenderDraw);
+        system.AddSample();
+        system_render.AddSample();
+        system_render_batching.AddSample();
+        system_render_draw.AddSample();
 
-        systemTransformAvg.AddSample(systemTransform);
-        systemVisibilityAvg.AddSample(systemVisibility);
+        system_transform.AddSample();
+        system_visibility.AddSample();
     }
 };

@@ -27,7 +27,7 @@ class ComponentPanel : public UIPanel {
     }
 
     void RenderInternal() override {
-        ScopedTimer timer(Profiler::uiComponent);
+        ScopedTimer timer(Profiler::ui_component.lastFrame);
         EntityRegistry* registry = EntityRegistry::GetInstance();
         if (!registry)
             return;

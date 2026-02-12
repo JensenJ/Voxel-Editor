@@ -73,7 +73,7 @@ class HierarchyPanel : public UIPanel {
     }
 
     void RenderInternal() override {
-        ScopedTimer timer(Profiler::uiHierarchy);
+        ScopedTimer timer(Profiler::ui_hierarchy.lastFrame);
         EntityRegistry* registry = EntityRegistry::GetInstance();
         if (registry == nullptr) {
             return;

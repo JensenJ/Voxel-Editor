@@ -4,14 +4,14 @@
 #include <Voxel/Log/Profiler.h>
 #include <Voxel/UI/UIPanel.h>
 
-#define PROF_NODE(name, value, ...)                                                                \
+#define PROF_NODE(name, timerPtr, ...)                                                             \
     {                                                                                              \
-        name, []() { return (float)(value); }, { __VA_ARGS__ }                                     \
+        name, timerPtr, { __VA_ARGS__ }                                                            \
     }
 
 struct ProfilerNode {
     const char* name;
-    std::function<double()> getValue;
+    FrameTimer<>* timer;
     std::vector<ProfilerNode> children;
 };
 
@@ -31,7 +31,7 @@ class ProfilingPanel : public UIPanel {
     }
 
     ImVec4 GetColourForTotalFrame(float ratio) {
-        if (ratio < 1.01f)
+        if (ratio < 1.02f)
             return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white if within budget or slightly over
         if (ratio < 1.25f)
             return ImVec4(1.0f, 1.0f, 0.6f, 1.0f); // yellow
@@ -42,16 +42,18 @@ class ProfilingPanel : public UIPanel {
 
     void DrawProfilerNode(ProfilerNode& node, double parentTime, bool isRoot = false) {
         const char* name = node.name;
-        double time = node.getValue();
+        double rawTime = node.timer->lastFrame;
+        double avgTime = node.timer->GetAverage();
+        double maxTime = std::max(rawTime, avgTime);
         float ratio = 0.0f;
         if (!isRoot && parentTime > 0.0f)
-            ratio = time / parentTime;
+            ratio = maxTime / parentTime;
         std::vector<ProfilerNode> children = node.children;
 
         ImVec4 col;
         if (isRoot) {
             float budget = 1000 / targetFPS;
-            col = GetColourForTotalFrame(time / budget);
+            col = GetColourForTotalFrame(maxTime / budget);
         } else {
             col = GetColourForRatio(ratio);
         }
@@ -66,50 +68,60 @@ class ProfilingPanel : public UIPanel {
         ImGui::PushStyleColor(ImGuiCol_Text, col);
         bool opened = ImGui::TreeNodeEx(
             (std::string("ProfilerNode-") + "##" + name + std::to_string((uintptr_t)&node)).c_str(),
-            flags, "%s: %.2f ms", name, time);
-        ImGui::PopStyleColor();
+            flags, "%s", name);
 
+        ImGui::SameLine(250.0f);
+        ImGui::Text("%.3f ms", rawTime);
+        ImGui::SameLine(400.0f);
+        ImGui::Text("%.3f ms", avgTime);
+
+        ImGui::PopStyleColor();
         if (opened) {
             for (ProfilerNode child : children) {
-                DrawProfilerNode(child, time);
+                DrawProfilerNode(child, maxTime);
             }
             ImGui::TreePop();
         }
     }
 
     void RenderInternal() override {
-        ScopedTimer timer(Profiler::uiProfiling);
+        ScopedTimer timer(Profiler::ui_profiling.lastFrame);
 
-        float frameFPS = Profiler::frame > 0.0 ? 1000.0f / Profiler::frame : 0.0f;
-        float frameFPSAvg = Profiler::frameAvg.GetAverage() > 0.0
-                                ? 1000.0f / Profiler::frameAvg.GetAverage()
-                                : 0.0f;
+        float frameFPS =
+            Profiler::frame.lastFrame > 0.0 ? 1000.0f / Profiler::frame.lastFrame : 0.0f;
+        float frameFPSAvg =
+            Profiler::frame.GetAverage() > 0.0 ? 1000.0f / Profiler::frame.GetAverage() : 0.0f;
 
         ImGui::Text("%.2f FPS | %.2f Average FPS", frameFPS, frameFPSAvg);
         float budget = 1000 / targetFPS;
         ImGui::PlotLines("Frame time (ms)", GraphFrameHistory::values,
                          GraphFrameHistory::GRAPH_FRAME_HISTORY_COUNT, GraphFrameHistory::index,
                          nullptr, 0.0f, budget * 5.0, ImVec2(0, 140));
-        DrawProfilerNode(root, root.getValue(), true);
+
+        ImGui::Text("System");
+        ImGui::SameLine(250.0f);
+        ImGui::Text("Last ms");
+        ImGui::SameLine(400.0f);
+        ImGui::Text("Avg ms");
+
+        DrawProfilerNode(root, std::max(root.timer->lastFrame, root.timer->GetAverage()), true);
     }
 
-    ProfilerNode root = PROF_NODE(
-        "Frame", Profiler::frameAvg.GetAverage(),
-        PROF_NODE("UI", Profiler::uiAvg.GetAverage(),
-                  PROF_NODE("Viewport", Profiler::uiViewportAvg.GetAverage()),
-                  PROF_NODE("Components", Profiler::uiComponentAvg.GetAverage()),
-                  PROF_NODE("Hierarchy", Profiler::uiHierarchyAvg.GetAverage()),
-                  PROF_NODE("Logging", Profiler::uiLoggingAvg.GetAverage(),
-                            PROF_NODE("Copy Buffer", Profiler::uiLoggingCopyBufferAvg.GetAverage()),
-                            PROF_NODE("Render", Profiler::uiLoggingRenderAvg.GetAverage())),
-                  PROF_NODE("Profiling", Profiler::uiProfilingAvg.GetAverage())),
-        PROF_NODE("System", Profiler::systemAvg.GetAverage(),
-                  PROF_NODE("Viewport", Profiler::uiViewportAvg.GetAverage()),
-                  PROF_NODE("Render", Profiler::systemRenderAvg.GetAverage(),
-                            PROF_NODE("Batching", Profiler::systemRenderBatchingAvg.GetAverage()),
-                            PROF_NODE("Drawing", Profiler::systemRenderDrawAvg.GetAverage())),
-                  PROF_NODE("Transform", Profiler::systemTransformAvg.GetAverage()),
-                  PROF_NODE("Visibility", Profiler::systemVisibilityAvg.GetAverage())));
+    ProfilerNode root =
+        PROF_NODE("Frame", &Profiler::frame,
+                  PROF_NODE("UI", &Profiler::ui, PROF_NODE("Viewport", &Profiler::ui_viewport),
+                            PROF_NODE("Components", &Profiler::ui_component),
+                            PROF_NODE("Hierarchy", &Profiler::ui_hierarchy),
+                            PROF_NODE("Logging", &Profiler::ui_logging,
+                                      PROF_NODE("Copy Buffer", &Profiler::ui_logging_copyBuffer),
+                                      PROF_NODE("Render", &Profiler::ui_logging_render)),
+                            PROF_NODE("Profiling", &Profiler::ui_profiling)),
+                  PROF_NODE("System", &Profiler::system,
+                            PROF_NODE("Render", &Profiler::system_render,
+                                      PROF_NODE("Batching", &Profiler::system_render_batching),
+                                      PROF_NODE("Drawing", &Profiler::system_render_draw)),
+                            PROF_NODE("Transform", &Profiler::system_transform),
+                            PROF_NODE("Visibility", &Profiler::system_visibility)));
 
     int LoadStyles() override { return 0; }
 

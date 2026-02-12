@@ -9,7 +9,7 @@ class LogPanel : public UIPanel {
 
   private:
     void RenderInternal() override {
-        ScopedTimer timer(Profiler::uiLogging);
+        ScopedTimer timer(Profiler::ui_logging.lastFrame);
         static bool scrollToBottom = true;
 
         std::shared_ptr<ImGuiSinkMT> logSink = Log::GetImGuiLogSink();
@@ -19,7 +19,7 @@ class LogPanel : public UIPanel {
         }
 
         {
-            ScopedTimer timer(Profiler::uiLoggingCopyBuffer);
+            ScopedTimer timer(Profiler::ui_logging_copyBuffer.lastFrame);
             if (logSink->updated) {
                 logBufferCopy = logSink->GetBufferCopy();
                 logSink->updated = false;
@@ -27,7 +27,7 @@ class LogPanel : public UIPanel {
         }
 
         {
-            ScopedTimer timer(Profiler::uiLoggingRender);
+            ScopedTimer timer(Profiler::ui_logging_render.lastFrame);
             static ImGuiTableFlags flags = ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg |
                                            ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY |
                                            ImGuiTableFlags_Reorderable;

@@ -16,7 +16,7 @@ class RenderSystem {
     }
 
     static void Run() {
-        ScopedTimer timer(Profiler::systemRender);
+        ScopedTimer timer(Profiler::system_render.lastFrame);
         glm::mat4 view = camera->GetViewMatrix();
         glm::mat4 projection = glm::perspective(glm::radians(camera->GetZoom()),
                                                 (float)application->GetSceneViewportWidth() /
@@ -28,7 +28,7 @@ class RenderSystem {
 
         std::unordered_map<RawModel*, std::vector<glm::mat4>> batches;
         {
-            ScopedTimer timer(Profiler::systemRenderBatching);
+            ScopedTimer timer(Profiler::system_render_batching.lastFrame);
             for (auto [e, transform, mesh, meta] :
                  entityRegistry->MakeView<const TransformComponent, const MeshComponent,
                                           const MetaComponent>()) {
@@ -44,7 +44,7 @@ class RenderSystem {
             }
         }
         {
-            ScopedTimer timer(Profiler::systemRenderDraw);
+            ScopedTimer timer(Profiler::system_render_draw.lastFrame);
             for (auto& [model, transforms] : batches) {
                 renderer.Bind(*model);
                 for (const glm::mat4& matrix : transforms) {

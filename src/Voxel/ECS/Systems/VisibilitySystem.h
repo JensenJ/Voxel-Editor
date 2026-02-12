@@ -13,7 +13,7 @@ class VisibilitySystem {
     }
 
     static void Run() {
-        ScopedTimer timer(Profiler::systemVisibility);
+        ScopedTimer timer(Profiler::system_visibility.lastFrame);
         if (!MetaComponent::IsVisibilityDirty())
             return;
 
