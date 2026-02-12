@@ -25,18 +25,28 @@ class RenderSystem {
         application->GetActiveShader()->SetMat4("view", view);
         application->GetActiveShader()->SetMat4("projection", projection);
 
+        std::unordered_map<RawModel*, std::vector<glm::mat4>> batches;
         for (auto [e, transform, mesh, meta] :
              entityRegistry
                  ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
-
             if (!meta.effectiveVisibility)
                 continue;
 
-            application->GetActiveShader()->SetMat4("model", transform.worldMatrix);
-            if (mesh.model)
-                renderer.Render(*mesh.model);
-            else
+            if (!mesh.model) {
                 LOG_ERROR("Mesh not found");
+                continue;
+            }
+
+            batches[mesh.model].push_back(transform.worldMatrix);
+        }
+        for (auto& [model, transforms] : batches) {
+            renderer.Bind(*model);
+            for (const glm::mat4& matrix : transforms) {
+
+                application->GetActiveShader()->SetMat4("model", matrix);
+                renderer.Render(*model);
+            }
+            renderer.Unbind();
         }
     }
 

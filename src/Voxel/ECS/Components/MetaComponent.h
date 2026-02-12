@@ -4,7 +4,9 @@
 
 struct MetaComponent {
   private:
-    static inline bool visibilityDirty = true;
+    static inline bool visibilityDirty =
+        true; // If any component needs its visibility updated. TODO:
+              // Optimise to only calculate subtree component is part of
 
   public:
     static constexpr const char* ComponentName = "Information";

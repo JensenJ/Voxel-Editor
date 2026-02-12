@@ -9,6 +9,8 @@
 struct TransformComponent {
   private:
     bool dirty = true;
+    static inline bool anyDirty = true; // If any component needs its transform updated. TODO:
+                                        // Optimise to only calculate subtree component is part of
 
   public:
     static constexpr const char* ComponentName = "Transform";
@@ -79,6 +81,7 @@ struct TransformComponent {
     void MarkDirty() {
         EntityRegistry* registry = EntityRegistry::GetInstance();
         dirty = true;
+        anyDirty = true;
         if (!registry->HasComponent<HierarchyComponent>(entity))
             return;
         HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(entity);
@@ -90,7 +93,9 @@ struct TransformComponent {
         }
     }
     void MarkClean() { dirty = false; }
+    static void MarkAnyClean() { anyDirty = false; }
     bool IsDirty() const { return dirty; }
+    static bool IsAnyDirty() { return anyDirty; }
 
     glm::vec3 GetRotationEulerDegrees() const { return glm::degrees(glm::eulerAngles(rotation)); }
     glm::quat GetRotationQuat() const { return rotation; }

@@ -16,10 +16,14 @@ class TransformSystem {
     }
 
     static void Run() {
+        if (!TransformComponent::IsAnyDirty())
+            return;
+
         // Update components with a hierarchy
         for (auto [entity, transform, hierarchy] :
              entityRegistry->MakeView<const TransformComponent, const HierarchyComponent>()) {
-            if (!hierarchy.HasParent()) {
+            if (!hierarchy.HasParent()) { // If this entity does not have a parent, then we should
+                                          // update all children recursively
                 UpdateRecursive(entity, glm::mat4(1.0f));
             }
         }
@@ -34,6 +38,8 @@ class TransformSystem {
                 transform.MarkClean();
             }
         }
+
+        TransformComponent::MarkAnyClean();
     }
 
     static void Reparent(Entity child, Entity newParent) {
