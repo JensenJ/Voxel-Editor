@@ -5,13 +5,9 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/gtx/quaternion.hpp>
 #include <Voxel/ECS/Components/HierarchyComponent.h>
+#include <Voxel/ECS/Systems/TransformSystem.h>
 
 struct TransformComponent {
-  private:
-    bool dirty = true;
-    static inline bool anyDirty = true; // If any component needs its transform updated. TODO:
-                                        // Optimise to only calculate subtree component is part of
-
   public:
     static constexpr const char* ComponentName = "Transform";
     Entity entity;
@@ -25,10 +21,10 @@ struct TransformComponent {
     glm::mat4 worldMatrix{1.0f};
 
     TransformComponent() = default;
-
-    TransformComponent(const glm::vec3& pos, const glm::vec3& eulerDegrees = glm::vec3(0.0f),
-                       const glm::vec3& scl = glm::vec3(1.0f))
-        : position(pos), scale(scl) {
+    explicit TransformComponent(Entity entity, const glm::vec3& pos,
+                                const glm::vec3& eulerDegrees = glm::vec3(0.0f),
+                                const glm::vec3& scl = glm::vec3(1.0f))
+        : entity(entity), eulerRotation(eulerDegrees), position(pos), scale(scl) {
         SetRotationEulerDegrees(eulerDegrees);
     }
 
@@ -75,27 +71,8 @@ struct TransformComponent {
         glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
 
         localMatrix = t * r * s;
-        MarkDirty();
+        TransformSystem::MarkEntityDirty(entity);
     }
-
-    void MarkDirty() {
-        EntityRegistry* registry = EntityRegistry::GetInstance();
-        dirty = true;
-        anyDirty = true;
-        if (!registry->HasComponent<HierarchyComponent>(entity))
-            return;
-        HierarchyComponent* hierarchy = registry->GetComponent<HierarchyComponent>(entity);
-
-        // When this transform is dirty, we need to update all children recursively
-        for (Entity child : hierarchy->children) {
-            TransformComponent* childTransform = registry->GetComponent<TransformComponent>(child);
-            childTransform->MarkDirty();
-        }
-    }
-    void MarkClean() { dirty = false; }
-    static void MarkAnyClean() { anyDirty = false; }
-    bool IsDirty() const { return dirty; }
-    static bool IsAnyDirty() { return anyDirty; }
 
     glm::vec3 GetRotationEulerDegrees() const { return glm::degrees(glm::eulerAngles(rotation)); }
     glm::quat GetRotationQuat() const { return rotation; }

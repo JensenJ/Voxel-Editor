@@ -9,7 +9,7 @@ struct MeshComponent {
     RawModel* model = nullptr;
 
     MeshComponent() = default;
-    explicit MeshComponent(RawModel* m) : model(m) {}
+    explicit MeshComponent(Entity entity, RawModel* m) : entity(entity), model(m) {}
 
     void RenderComponentPanel() { ImGui::Text("Vertices: %d", model->GetVertexCount()); }
 };

@@ -1,13 +1,10 @@
 #pragma once
+
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
+#include <Voxel/ECS/Systems/VisibilitySystem.h>
 
 struct MetaComponent {
-  private:
-    static inline bool visibilityDirty =
-        true; // If any component needs its visibility updated. TODO:
-              // Optimise to only calculate subtree component is part of
-
   public:
     static constexpr const char* ComponentName = "Information";
     Entity entity;
@@ -17,13 +14,8 @@ struct MetaComponent {
     bool effectiveVisibility{true};
 
     MetaComponent() = default;
-    MetaComponent(const std::string& n, bool vis = true) : name(n), visibility(vis) {}
-
-    static void MarkVisibilityDirty() { visibilityDirty = true; }
-
-    static void MarkVisibilityClean() { visibilityDirty = false; }
-
-    static bool IsVisibilityDirty() { return visibilityDirty; }
+    MetaComponent(Entity entity, const std::string& n, bool vis = true)
+        : entity(entity), name(n), visibility(vis) {}
 
     void RenderComponentPanel() {
         // ImGui needs a mutable char buffer
@@ -62,7 +54,7 @@ struct MetaComponent {
 
             ImGui::TableSetColumnIndex(1);
             if (ImGui::Checkbox("##Visible", &visibility)) {
-                MetaComponent::MarkVisibilityDirty();
+                VisibilitySystem::MarkEntityDirty(entity);
             }
 
             ImGui::EndTable();

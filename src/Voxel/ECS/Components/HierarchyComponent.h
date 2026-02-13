@@ -10,10 +10,13 @@ struct HierarchyComponent {
     std::set<Entity> children = std::set<Entity>();
 
     HierarchyComponent() = default;
-    explicit HierarchyComponent(Entity parent) : parent(parent) {
+    explicit HierarchyComponent(Entity entity, Entity parent = InvalidEntity)
+        : entity(entity), parent(parent) {
         EntityRegistry* registry = EntityRegistry::GetInstance();
-        HierarchyComponent* parentHierarchy = registry->GetComponent<HierarchyComponent>(parent);
-        parentHierarchy->AddChild(entity);
+        if (HasParent()) {
+            HierarchyComponent* parentHierarchy = registry->GetComponent<HierarchyComponent>(parent);
+            parentHierarchy->AddChild(entity);
+        }
     }
 
     void AddChild(Entity entity) { children.insert(entity); }

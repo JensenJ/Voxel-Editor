@@ -20,9 +20,9 @@ class EntityRegistry {
     }
 
     template <typename T, typename... Args> T& AddComponent(Entity e, Args&&... args) {
-        T comp(std::forward<Args>(args)...);
+        T& comp = GetStorage<T>().Add(e, std::forward<Args>(args)...);
         comp.entity = e;
-        return GetStorage<T>().Add(e, std::move(comp));
+        return comp;
     }
 
     template <typename T> T* GetComponent(Entity e) { return GetStorage<T>().Get(e); }

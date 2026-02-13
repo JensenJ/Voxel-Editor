@@ -9,7 +9,7 @@ template <typename T> class ComponentStorage {
         if (it != components.end())
             return *it;
 
-        it = components.insert(it, T(std::forward<Args>(args)...));
+        it = components.insert(it, T(e, std::forward<Args>(args)...));
         return *it;
     }
 
