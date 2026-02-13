@@ -58,6 +58,8 @@ void Application::InitialiseOpenGl() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
+    glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
     GLFWmonitor* monitor = glfwGetPrimaryMonitor();
     const GLFWvidmode* mode = glfwGetVideoMode(monitor);
     int screenWidth = 1920;

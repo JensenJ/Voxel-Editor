@@ -93,6 +93,7 @@ int main() {
         }
     }
 
+    glfwShowWindow(application->GetWindow());
     LOG_INFO("Initialisation complete");
     while (application->ShouldStayOpen()) {
         ScopedTimer timer(Profiler::frame);
