@@ -112,14 +112,14 @@ class HierarchyPanel : public UIPanel {
     }
 
     void RenderInternal() override {
-        ScopedTimer timer(Profiler::ui_hierarchy.lastFrame);
+        ScopedTimer timer(Profiler::ui_hierarchy);
 
         EntityRegistry* registry = EntityRegistry::GetInstance();
         if (!registry)
             return;
 
         {
-            ScopedTimer timer(Profiler::ui_hierarchy_buildList.lastFrame);
+            ScopedTimer timer(Profiler::ui_hierarchy_buildList);
             if (visibleNodesDirty) {
                 BuildVisibleList(registry);
                 visibleNodesDirty = false;
@@ -127,7 +127,7 @@ class HierarchyPanel : public UIPanel {
         }
 
         {
-            ScopedTimer timer(Profiler::ui_hierarchy_render.lastFrame);
+            ScopedTimer timer(Profiler::ui_hierarchy_render);
 
             ImGuiListClipper clipper;
             clipper.Begin((int)VisibleNodes.size());

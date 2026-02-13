@@ -5,7 +5,7 @@
 #include <Voxel/ECS/Components/MetaComponent.h>
 
 void VisibilitySystem::Run() {
-    ScopedTimer timer(Profiler::system_visibility.lastFrame);
+    ScopedTimer timer(Profiler::system_visibility);
 
     for (Entity entity : dirtyEntities) {
         MetaComponent* meta = entityRegistry->GetComponent<MetaComponent>(entity);

@@ -72,7 +72,7 @@ class ProfilingPanel : public UIPanel {
     }
 
     void RenderInternal() override {
-        ScopedTimer timer(Profiler::ui_profiling.lastFrame);
+        ScopedTimer timer(Profiler::ui_profiling);
 
         float frameFPS =
             Profiler::frame.lastFrame > 0.0 ? 1000.0f / Profiler::frame.lastFrame : 0.0f;
@@ -81,9 +81,8 @@ class ProfilingPanel : public UIPanel {
 
         ImGui::Text("%.2f FPS | %.2f Average FPS", frameFPS, frameFPSAvg);
         float budget = 1000 / targetFPS;
-        ImGui::PlotLines("Frame time (ms)", GraphFrameHistory::values,
-                         GraphFrameHistory::GRAPH_FRAME_HISTORY_COUNT, GraphFrameHistory::index,
-                         nullptr, 0.0f, budget * 5.0, ImVec2(0, 140));
+        ImGui::PlotLines("Frame time (ms)", Profiler::frame.GetBuffer(), Profiler::frame.GetCount(),
+                         Profiler::frame.GetOffset(), nullptr, 0.0f, budget * 5.0, ImVec2(0, 140));
 
         ImGui::Text("System");
         ImGui::SameLine(250.0f);

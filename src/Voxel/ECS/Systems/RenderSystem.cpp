@@ -7,7 +7,7 @@
 #include <Voxel/Rendering/ShaderLoader.h>
 
 void RenderSystem::Run() {
-    ScopedTimer timer(Profiler::system_render.lastFrame);
+    ScopedTimer timer(Profiler::system_render);
     glm::mat4 view = camera->GetViewMatrix();
     glm::mat4 projection = glm::perspective(glm::radians(camera->GetZoom()),
                                             (float)application->GetSceneViewportWidth() /
@@ -19,7 +19,7 @@ void RenderSystem::Run() {
 
     std::unordered_map<RawModel*, std::vector<glm::mat4>> batches;
     {
-        ScopedTimer timer(Profiler::system_render_batching.lastFrame);
+        ScopedTimer timer(Profiler::system_render_batching);
         for (auto [e, transform, mesh, meta] :
              entityRegistry
                  ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
@@ -35,7 +35,7 @@ void RenderSystem::Run() {
         }
     }
     {
-        ScopedTimer timer(Profiler::system_render_draw.lastFrame);
+        ScopedTimer timer(Profiler::system_render_draw);
         for (auto& [model, transforms] : batches) {
             renderer.Bind(*model);
             for (const glm::mat4& matrix : transforms) {

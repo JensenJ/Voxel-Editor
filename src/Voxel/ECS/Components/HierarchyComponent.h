@@ -14,7 +14,8 @@ struct HierarchyComponent {
         : entity(entity), parent(parent) {
         EntityRegistry* registry = EntityRegistry::GetInstance();
         if (HasParent()) {
-            HierarchyComponent* parentHierarchy = registry->GetComponent<HierarchyComponent>(parent);
+            HierarchyComponent* parentHierarchy =
+                registry->GetComponent<HierarchyComponent>(parent);
             parentHierarchy->AddChild(entity);
         }
     }

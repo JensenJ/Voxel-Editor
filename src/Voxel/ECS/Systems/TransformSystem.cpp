@@ -6,7 +6,7 @@
 #include <Voxel/ECS/Systems/VisibilitySystem.h>
 
 void TransformSystem::Run() {
-    ScopedTimer timer(Profiler::system_transform.lastFrame);
+    ScopedTimer timer(Profiler::system_transform);
 
     for (Entity entity : dirtyEntities) {
         HierarchyComponent* hierarchy = entityRegistry->GetComponent<HierarchyComponent>(entity);

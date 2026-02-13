@@ -95,7 +95,7 @@ int main() {
 
     LOG_INFO("Initialisation complete");
     while (application->ShouldStayOpen()) {
-        ScopedTimer timer(Profiler::frame.lastFrame);
+        ScopedTimer timer(Profiler::frame);
         application->StartFrame();
 
         // Draw wireframe if enabled
@@ -112,7 +112,7 @@ int main() {
         camera->ProcessInput(application->GetWindow());
 
         {
-            ScopedTimer timer(Profiler::system.lastFrame);
+            ScopedTimer timer(Profiler::system);
             VisibilitySystem::Run();
             TransformSystem::Run();
             RenderSystem::Run();

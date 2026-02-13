@@ -6,4 +6,3 @@
 #include <Voxel/InputManager.h>
 #include <Voxel/Log/Log.h>
 #include <Voxel/Log/Profiler.h>
-#include <Voxel/Log/ScopedTimer.h>

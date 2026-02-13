@@ -173,7 +173,6 @@ void Application::EndFrame() {
 
     // Render ImGui stuff
     MainUI::RenderUI();
-    Profiler::UpdateAverages();
     glfwSwapBuffers(window);
 }
 

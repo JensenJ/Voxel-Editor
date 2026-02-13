@@ -44,7 +44,7 @@ void MainUI::RegisterPanels() {
 }
 
 void MainUI::RenderUI() {
-    ScopedTimer timer(Profiler::ui.lastFrame);
+    ScopedTimer timer(Profiler::ui);
     SetupFrame();
 
     // Render panels
