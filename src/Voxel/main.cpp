@@ -79,9 +79,9 @@ int main() {
     inputManager->BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
 
     // Create entities
-    for (int x = 0; x < 2; x++) {
-        for (int y = 0; y < 2; y++) {
-            for (int z = 0; z < 2; z++) {
+    for (int x = 0; x < 8; x++) {
+        for (int y = 0; y < 8; y++) {
+            for (int z = 0; z < 80; z++) {
                 Entity entity = entityRegistry->CreateEntity();
                 auto& meta = entityRegistry->AddComponent<MetaComponent>(
                     entity, std::format("Cube ({}, {}, {})", x, y, z), true);

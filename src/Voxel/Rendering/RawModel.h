@@ -15,9 +15,11 @@ class RawModel {
   public:
     RawModel(std::vector<Vertex> vertices, std::vector<unsigned int> indices);
 
-    unsigned int GetVAO();
-    unsigned int GetVertexCount();
+    unsigned int GetVAO() const;
+    unsigned int GetIndexCount() const;
     void DeleteModel();
+
+    void UpdateInstanceBuffer(const std::vector<glm::mat4>& matrices);
 
   private:
     void CreateModel();
@@ -26,4 +28,7 @@ class RawModel {
 
     std::vector<Vertex> vertices;
     std::vector<unsigned int> indices;
+
+    GLuint instanceVBO = 0;
+    size_t instanceCapacity = 0;
 };

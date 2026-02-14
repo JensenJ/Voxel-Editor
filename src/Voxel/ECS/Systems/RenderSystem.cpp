@@ -37,12 +37,10 @@ void RenderSystem::Run() {
     {
         ScopedTimer timer(Profiler::system_render_draw);
         for (auto& [model, transforms] : batches) {
-            renderer.Bind(*model);
-            for (const glm::mat4& matrix : transforms) {
-                application->GetActiveShader()->SetMat4("model", matrix);
-                renderer.Render(*model);
-            }
-            renderer.Unbind();
+            model->UpdateInstanceBuffer(transforms);
+            rawModelRenderer.Bind(*model);
+            rawModelRenderer.Render(*model, transforms.size());
+            rawModelRenderer.Unbind();
         }
     }
 }

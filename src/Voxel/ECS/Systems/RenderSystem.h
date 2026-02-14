@@ -3,7 +3,7 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 #include <Voxel/Camera.h>
-#include <Voxel/Rendering/EntityRenderer.h>
+#include <Voxel/Rendering/RawModelRenderer.h>
 
 class RenderSystem {
   public:
@@ -20,5 +20,5 @@ class RenderSystem {
     static inline Camera* camera = nullptr;
     static inline Application* application = nullptr;
     static inline EntityRegistry* entityRegistry = nullptr;
-    static inline EntityRenderer renderer = EntityRenderer();
+    static inline RawModelRenderer rawModelRenderer = RawModelRenderer();
 };

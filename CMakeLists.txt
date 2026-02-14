@@ -127,7 +127,7 @@ target_sources(voxel_editor PRIVATE
 	"src/Voxel/ECS/Systems/VisibilitySystem.cpp"
 	"src/Voxel/ECS/Systems/TransformSystem.cpp"
 	"src/Voxel/ECS/Systems/RenderSystem.cpp"
-	"src/Voxel/Rendering/EntityRenderer.cpp"
+	"src/Voxel/Rendering/RawModelRenderer.cpp"
 	"src/Voxel/Rendering/FrameBuffer.cpp"
 	"src/Voxel/Rendering/RawModel.cpp"
 	"src/Voxel/Rendering/ShaderLoader.cpp"

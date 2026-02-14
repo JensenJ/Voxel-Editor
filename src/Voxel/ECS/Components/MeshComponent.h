@@ -11,5 +11,5 @@ struct MeshComponent {
     MeshComponent() = default;
     explicit MeshComponent(Entity entity, RawModel* m) : entity(entity), model(m) {}
 
-    void RenderComponentPanel() { ImGui::Text("Vertices: %d", model->GetVertexCount()); }
+    void RenderComponentPanel() { ImGui::Text("Vertices: %d", model->GetIndexCount()); }
 };
