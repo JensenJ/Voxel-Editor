@@ -3,7 +3,7 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 
-struct EntityEffectiveVisibilityChangedEvent {
+struct EntityVisibilityChangedEvent {
     Entity entity;
     bool visibility;
 };
@@ -12,14 +12,19 @@ class VisibilitySystem {
   public:
     static void Init(EntityRegistry* registry) {
         entityRegistry = registry;
+
+        onEntityChangedVisibility.AddObserver([](const EntityVisibilityChangedEvent& event) {
+            dirtyEntities.push_back(event.entity);
+        });
+
         LOG_INFO("Initialised VisibilitySystem");
     }
 
-    static inline Subject<EntityEffectiveVisibilityChangedEvent> onEntityChangedEffectiveVisibility;
+    static inline Subject<EntityVisibilityChangedEvent> onEntityChangedVisibility;
+    static inline Subject<EntityVisibilityChangedEvent> onEntityChangedEffectiveVisibility;
 
     static void Run();
     static void UpdateVisibilityRecursive(Entity entity, bool parentVisible);
-    static void MarkEntityDirty(Entity entity) { dirtyEntities.push_back(entity); }
 
   private:
     static inline EntityRegistry* entityRegistry = nullptr;

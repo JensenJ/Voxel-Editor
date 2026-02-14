@@ -20,6 +20,14 @@ class TransformSystem {
   public:
     static void Init(EntityRegistry* registry) {
         entityRegistry = registry;
+
+        onEntityChangedParent.AddObserver(
+            [](const EntityChangedParentEvent& event) { dirtyEntities.push_back(event.entity); });
+
+        onEntityChangedTransform.AddObserver([](const EntityChangedTransformEvent& event) {
+            dirtyEntities.push_back(event.entity);
+        });
+
         LOG_INFO("Initialised TransformSystem");
     }
 
@@ -29,7 +37,6 @@ class TransformSystem {
     static void Run();
     static void Reparent(Entity child, Entity newParent);
     static bool IsDescendant(Entity possibleParent, Entity entity);
-    static void MarkEntityDirty(Entity entity) { dirtyEntities.push_back(entity); }
 
   private:
     static inline EntityRegistry* entityRegistry = nullptr;

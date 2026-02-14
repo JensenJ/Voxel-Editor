@@ -54,7 +54,7 @@ struct MetaComponent {
 
             ImGui::TableSetColumnIndex(1);
             if (ImGui::Checkbox("##Visible", &visibility)) {
-                VisibilitySystem::MarkEntityDirty(entity);
+                VisibilitySystem::onEntityChangedVisibility.Notify({entity, visibility});
             }
 
             ImGui::EndTable();

@@ -72,7 +72,8 @@ void TransformSystem::Reparent(Entity child, Entity newParent) {
     onEntityChangedParent.Notify({child, oldParent, newParent});
 
     if (entityRegistry->HasComponent<MetaComponent>(child)) {
-        VisibilitySystem::MarkEntityDirty(child);
+        MetaComponent* meta = entityRegistry->GetComponent<MetaComponent>(child);
+        VisibilitySystem::onEntityChangedVisibility.Notify({child, meta->visibility});
     }
 }
 
