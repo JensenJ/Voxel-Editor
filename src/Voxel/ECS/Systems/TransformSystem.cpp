@@ -32,6 +32,8 @@ void TransformSystem::Reparent(Entity child, Entity newParent) {
     if (childHierarchy->parent == newParent)
         return;
 
+    Entity oldParent = childHierarchy->parent;
+
     // Save old world matrix
     glm::mat4 world = transform->worldMatrix;
 
@@ -66,6 +68,9 @@ void TransformSystem::Reparent(Entity child, Entity newParent) {
     }
 
     transform->UpdateTransform();
+
+    onEntityChangedParent.Notify({child, oldParent, newParent});
+
     if (entityRegistry->HasComponent<MetaComponent>(child)) {
         VisibilitySystem::MarkEntityDirty(child);
     }

@@ -70,7 +70,9 @@ struct TransformComponent {
         glm::mat4 r = glm::toMat4(rotation);
         glm::mat4 s = glm::scale(glm::mat4(1.0f), scale);
 
+        glm::mat4 oldMatrix = localMatrix;
         localMatrix = t * r * s;
+        TransformSystem::onEntityChangedTransform.Notify({entity, oldMatrix, localMatrix});
         TransformSystem::MarkEntityDirty(entity);
     }
 

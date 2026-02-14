@@ -18,6 +18,17 @@ class HierarchyPanel : public UIPanel {
   public:
     const char* GetPanelName() override { return "Hierarchy"; }
 
+    HierarchyPanel() {
+        EntityRegistry::onAddEntity.AddObserver(
+            [this](const EntityAddEvent& event) { visibleNodesDirty = true; });
+
+        EntityRegistry::onRemoveEntity.AddObserver(
+            [this](const EntityRemoveEvent& event) { visibleNodesDirty = true; });
+
+        EntityRegistry::onClearEntities.AddObserver(
+            [this](const EntityClearEvent& event) { visibleNodesDirty = true; });
+    }
+
   private:
     void BuildVisibleList(EntityRegistry* registry) {
         VisibleNodes.clear();
@@ -160,5 +171,5 @@ class HierarchyPanel : public UIPanel {
 
     std::vector<VisibleNode> VisibleNodes;
     std::unordered_map<Entity, bool> expanded;
-    bool visibleNodesDirty = true; // TODO: set to true when components are added or removed
+    bool visibleNodesDirty = true;
 };

@@ -4,12 +4,27 @@
 #include <Voxel/Core.h>
 #include <glm/gtx/matrix_decompose.hpp>
 
+struct EntityChangedParentEvent {
+    Entity entity;
+    Entity newParent;
+    Entity oldParent;
+};
+
+struct EntityChangedTransformEvent {
+    Entity entity;
+    glm::mat4 oldTransform;
+    glm::mat4 newTransform;
+};
+
 class TransformSystem {
   public:
     static void Init(EntityRegistry* registry) {
         entityRegistry = registry;
         LOG_INFO("Initialised TransformSystem");
     }
+
+    static inline Subject<EntityChangedParentEvent> onEntityChangedParent;
+    static inline Subject<EntityChangedTransformEvent> onEntityChangedTransform;
 
     static void Run();
     static void Reparent(Entity child, Entity newParent);

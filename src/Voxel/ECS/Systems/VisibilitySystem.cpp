@@ -31,7 +31,12 @@ void VisibilitySystem::UpdateVisibilityRecursive(Entity entity, bool parentVisib
     if (!meta || !hierarchy)
         return;
 
-    meta->effectiveVisibility = parentVisible && meta->visibility;
+    bool newEffectiveVisibility = parentVisible && meta->visibility;
+    if (meta->effectiveVisibility != newEffectiveVisibility) {
+        meta->effectiveVisibility = newEffectiveVisibility;
+
+        onEntityChangedEffectiveVisibility.Notify({entity, newEffectiveVisibility});
+    }
 
     for (Entity child : hierarchy->children) {
         UpdateVisibilityRecursive(child, meta->effectiveVisibility);

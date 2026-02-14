@@ -3,12 +3,19 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 
+struct EntityEffectiveVisibilityChangedEvent {
+    Entity entity;
+    bool visibility;
+};
+
 class VisibilitySystem {
   public:
     static void Init(EntityRegistry* registry) {
         entityRegistry = registry;
         LOG_INFO("Initialised VisibilitySystem");
     }
+
+    static inline Subject<EntityEffectiveVisibilityChangedEvent> onEntityChangedEffectiveVisibility;
 
     static void Run();
     static void UpdateVisibilityRecursive(Entity entity, bool parentVisible);
