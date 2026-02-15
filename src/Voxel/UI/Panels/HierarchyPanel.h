@@ -51,7 +51,7 @@ class HierarchyPanel : public UIPanel {
 
         VisibleNodes.push_back({entity, meta, hierarchy, depth});
 
-        if (!expanded[entity])
+        if (!IsNodeOpen(entity))
             return;
 
         for (Entity child : hierarchy->children) {
@@ -69,7 +69,7 @@ class HierarchyPanel : public UIPanel {
         ImGuiTreeNodeFlags flags =
             ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-        if (expanded[entity])
+        if (IsNodeOpen(entity))
             flags |= ImGuiTreeNodeFlags_DefaultOpen;
 
         if (hierarchy->children.empty())
@@ -111,7 +111,7 @@ class HierarchyPanel : public UIPanel {
             ImGui::EndDragDropTarget();
         }
 
-        if (opened != expanded[entity]) {
+        if (IsNodeOpen(entity) != opened) {
             expanded[entity] = opened;
             visibleNodesDirty = true;
         }
@@ -167,6 +167,12 @@ class HierarchyPanel : public UIPanel {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));
         return 2;
+    }
+
+    bool IsNodeOpen(Entity entity) {
+        if (!expanded.contains(entity))
+            return true;
+        return expanded[entity];
     }
 
     std::vector<VisibleNode> VisibleNodes;
