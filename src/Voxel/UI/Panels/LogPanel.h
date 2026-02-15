@@ -10,7 +10,8 @@ class LogPanel : public UIPanel {
   private:
     void RenderInternal() override {
         ScopedTimer timer(Profiler::ui_logging);
-        static bool scrollToBottom = true;
+        static bool wasAtBottom = true;
+        bool newEntries = false;
 
         std::shared_ptr<ImGuiSinkMT> logSink = Log::GetImGuiLogSink();
         if (!logSink) {
@@ -23,6 +24,7 @@ class LogPanel : public UIPanel {
             if (logSink->updated) {
                 logBufferCopy = logSink->GetBufferCopy();
                 logSink->updated = false;
+                newEntries = true;
             }
         }
 
@@ -34,6 +36,10 @@ class LogPanel : public UIPanel {
 
             if (!ImGui::BeginTable("LogTable", 5, flags))
                 return;
+
+            float scrollY = ImGui::GetScrollY();
+            float scrollMaxY = ImGui::GetScrollMaxY();
+            wasAtBottom = (scrollY >= scrollMaxY - 2.0f);
 
             ImGui::TableSetupScrollFreeze(0, 1);
             ImGui::TableSetupColumn("Date", ImGuiTableColumnFlags_WidthFixed, 140.0f);
@@ -70,6 +76,8 @@ class LogPanel : public UIPanel {
                     ImGui::PopTextWrapPos();
                 }
             }
+            if (newEntries && wasAtBottom)
+                ImGui::SetScrollHereY(1.0f);
 
             ImGui::EndTable();
         }
