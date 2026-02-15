@@ -44,6 +44,7 @@ void RenderSystem::AddEntityToBatch(Entity e) {
     size_t slot = batch.transforms.size();
 
     batch.transforms.push_back(transform->worldMatrix);
+    batch.entities.push_back(e);
     batch.slots[e] = slot;
     batch.dirty = true;
 }
@@ -66,15 +67,14 @@ void RenderSystem::RemoveEntityFromBatch(Entity e) {
     size_t slot = itSlot->second;
     size_t lastIndex = batch.transforms.size() - 1;
 
-    batch.transforms[slot] = batch.transforms[lastIndex];
-    for (auto& [entity, index] : batch.slots) {
-        if (index == lastIndex) {
-            index = slot;
-            break;
-        }
+    if (slot != lastIndex) {
+        batch.transforms[slot] = batch.transforms[lastIndex];
+        batch.entities[slot] = batch.entities[lastIndex];
+        batch.slots[batch.entities[slot]] = slot;
     }
 
     batch.transforms.pop_back();
+    batch.entities.pop_back();
     batch.slots.erase(itSlot);
     batch.dirty = true;
 }

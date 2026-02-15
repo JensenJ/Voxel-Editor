@@ -12,6 +12,7 @@
 
 struct ModelBatch {
     std::vector<glm::mat4> transforms;
+    std::vector<Entity> entities;
     std::unordered_map<Entity, size_t> slots;
     bool dirty = true;
 };
