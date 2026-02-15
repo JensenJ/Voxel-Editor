@@ -24,7 +24,7 @@ class TransformSystem {
         onEntityChangedParent.AddObserver(
             [](const EntityChangedParentEvent& event) { dirtyEntities.push_back(event.entity); });
 
-        onEntityChangedTransform.AddObserver([](const EntityChangedTransformEvent& event) {
+        onEntityChangedLocalTransform.AddObserver([](const EntityChangedTransformEvent& event) {
             dirtyEntities.push_back(event.entity);
         });
 
@@ -32,7 +32,8 @@ class TransformSystem {
     }
 
     static inline Subject<EntityChangedParentEvent> onEntityChangedParent;
-    static inline Subject<EntityChangedTransformEvent> onEntityChangedTransform;
+    static inline Subject<EntityChangedTransformEvent> onEntityChangedLocalTransform;
+    static inline Subject<EntityChangedTransformEvent> onEntityChangedWorldTransform;
 
     static void Run();
     static void Reparent(Entity child, Entity newParent);

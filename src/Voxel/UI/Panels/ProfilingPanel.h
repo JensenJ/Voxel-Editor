@@ -108,12 +108,8 @@ class ProfilingPanel : public UIPanel {
         {"Logging", &Profiler::ui_logging, uiLoggingChildren, 2},
         {"Profiling", &Profiler::ui_profiling, nullptr, 0}};
 
-    static inline ProfilerNode systemRenderChildren[] = {
-        {"Batching", &Profiler::system_render_batching, nullptr, 0},
-        {"Drawing", &Profiler::system_render_draw, nullptr, 0}};
-
     static inline ProfilerNode systemChildren[] = {
-        {"Render", &Profiler::system_render, systemRenderChildren, 2},
+        {"Render", &Profiler::system_render, nullptr, 0},
         {"Transform", &Profiler::system_transform, nullptr, 0},
         {"Visibility", &Profiler::system_visibility, nullptr, 0}};
 

@@ -17,30 +17,64 @@ void RenderSystem::Run() {
     application->GetActiveShader()->SetMat4("view", view);
     application->GetActiveShader()->SetMat4("projection", projection);
 
-    std::unordered_map<RawModel*, std::vector<glm::mat4>> batches;
-    {
-        ScopedTimer timer(Profiler::system_render_batching);
-        for (auto [e, transform, mesh, meta] :
-             entityRegistry
-                 ->MakeView<const TransformComponent, const MeshComponent, const MetaComponent>()) {
-            if (!meta.effectiveVisibility)
-                continue;
+    for (auto& [model, batch] : batches) {
+        if (batch.transforms.empty())
+            continue;
 
-            if (!mesh.model) {
-                LOG_ERROR("Mesh not found");
-                continue;
-            }
+        if (batch.dirty) {
+            model->UpdateInstanceBuffer(batch.transforms);
+            batch.dirty = false;
+        }
 
-            batches[mesh.model].push_back(transform.worldMatrix);
+        rawModelRenderer.Bind(*model);
+        rawModelRenderer.Render(*model, batch.transforms.size());
+        rawModelRenderer.Unbind();
+    }
+}
+
+void RenderSystem::AddEntityToBatch(Entity e) {
+    MeshComponent* mesh = entityRegistry->GetComponent<MeshComponent>(e);
+    TransformComponent* transform = entityRegistry->GetComponent<TransformComponent>(e);
+
+    if (!mesh || !transform)
+        return;
+
+    auto& batch = batches[mesh->model];
+
+    size_t slot = batch.transforms.size();
+
+    batch.transforms.push_back(transform->worldMatrix);
+    batch.slots[e] = slot;
+    batch.dirty = true;
+}
+
+void RenderSystem::RemoveEntityFromBatch(Entity e) {
+    MeshComponent* mesh = entityRegistry->GetComponent<MeshComponent>(e);
+    if (!mesh)
+        return;
+
+    auto itBatch = batches.find(mesh->model);
+    if (itBatch == batches.end())
+        return;
+
+    auto& batch = itBatch->second;
+
+    auto itSlot = batch.slots.find(e);
+    if (itSlot == batch.slots.end())
+        return;
+
+    size_t slot = itSlot->second;
+    size_t lastIndex = batch.transforms.size() - 1;
+
+    batch.transforms[slot] = batch.transforms[lastIndex];
+    for (auto& [entity, index] : batch.slots) {
+        if (index == lastIndex) {
+            index = slot;
+            break;
         }
     }
-    {
-        ScopedTimer timer(Profiler::system_render_draw);
-        for (auto& [model, transforms] : batches) {
-            model->UpdateInstanceBuffer(transforms);
-            rawModelRenderer.Bind(*model);
-            rawModelRenderer.Render(*model, transforms.size());
-            rawModelRenderer.Unbind();
-        }
-    }
+
+    batch.transforms.pop_back();
+    batch.slots.erase(itSlot);
+    batch.dirty = true;
 }

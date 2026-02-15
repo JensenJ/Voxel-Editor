@@ -72,7 +72,7 @@ struct TransformComponent {
 
         glm::mat4 oldMatrix = localMatrix;
         localMatrix = t * r * s;
-        TransformSystem::onEntityChangedTransform.Notify({entity, oldMatrix, localMatrix});
+        TransformSystem::onEntityChangedLocalTransform.Notify({entity, oldMatrix, localMatrix});
     }
 
     glm::vec3 GetRotationEulerDegrees() const { return glm::degrees(glm::eulerAngles(rotation)); }

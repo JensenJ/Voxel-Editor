@@ -94,7 +94,9 @@ bool TransformSystem::IsDescendant(Entity possibleParent, Entity entity) {
 
 void TransformSystem::UpdateRecursive(Entity entity, const glm::mat4& parentWorld) {
     TransformComponent* transform = entityRegistry->GetComponent<TransformComponent>(entity);
+    glm::mat4 oldWorldTransform = transform->worldMatrix;
     transform->worldMatrix = parentWorld * transform->localMatrix;
+    onEntityChangedWorldTransform.Notify({entity, oldWorldTransform, transform->worldMatrix});
 
     if (!entityRegistry->HasComponent<HierarchyComponent>(entity))
         return;

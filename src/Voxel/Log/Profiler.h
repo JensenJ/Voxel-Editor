@@ -81,8 +81,6 @@ class Profiler {
 
     static inline FrameTimer<> system;
     static inline FrameTimer<> system_render;
-    static inline FrameTimer<> system_render_batching;
-    static inline FrameTimer<> system_render_draw;
     static inline FrameTimer<> system_transform;
     static inline FrameTimer<> system_visibility;
 };
