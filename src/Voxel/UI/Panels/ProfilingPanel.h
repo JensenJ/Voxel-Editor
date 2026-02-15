@@ -40,12 +40,11 @@ class ProfilingPanel : public UIPanel {
         const char* name = node.name;
         double avgTime = node.timer->GetAverage();
         double rawTime = node.timer->lastFrame;
-        double maxTime = std::max(rawTime, avgTime);
-        float ratio = 0.0f;
-        if (!isRoot && parentTime > 0.0f)
-            ratio = maxTime / parentTime;
+        double maxTime = node.timer->GetMax();
+        double colourTime = std::max(maxTime, std::max(rawTime, avgTime));
+        float ratio = maxTime / parentTime;
 
-        ImVec4 col = isRoot ? GetColourForTotalFrame((float)(maxTime / frameBudget))
+        ImVec4 col = isRoot ? GetColourForTotalFrame((float)(colourTime / frameBudget))
                             : GetColourForRatio(ratio);
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
@@ -62,11 +61,13 @@ class ProfilingPanel : public UIPanel {
         ImGui::Text("%.3f ms", rawTime);
         ImGui::SameLine(400.0f);
         ImGui::Text("%.3f ms", avgTime);
+        ImGui::SameLine(550.0f);
+        ImGui::Text("%.3f ms", maxTime);
 
         ImGui::PopStyleColor();
         if (opened) {
             for (size_t i = 0; i < node.childCount; ++i)
-                DrawProfilerNode(node.children[i], maxTime);
+                DrawProfilerNode(node.children[i], colourTime);
             ImGui::TreePop();
         }
     }
@@ -89,8 +90,13 @@ class ProfilingPanel : public UIPanel {
         ImGui::Text("Last ms");
         ImGui::SameLine(400.0f);
         ImGui::Text("Avg ms");
+        ImGui::SameLine(550.0f);
+        ImGui::Text("Max ms");
 
-        DrawProfilerNode(root, std::max(root.timer->lastFrame, root.timer->GetAverage()), true);
+        DrawProfilerNode(root,
+                         std::max(root.timer->GetMax(),
+                                  std::max(root.timer->lastFrame, root.timer->GetAverage())),
+                         true);
     }
 
     static inline ProfilerNode uiLoggingChildren[] = {

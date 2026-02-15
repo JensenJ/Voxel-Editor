@@ -3,13 +3,15 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 
-template <size_t N = 120> // last N frames
+template <size_t N = 300> // last N frames
 struct FrameTimer {
   private:
     std::array<float, N> samples{};
     size_t index = 0;
     size_t count = 0;
     float runningSum = 0.0;
+    std::deque<std::pair<size_t, float>> maxDeque;
+    size_t totalSamples = 0;
 
   public:
     FrameTimer() {
@@ -29,12 +31,28 @@ struct FrameTimer {
         }
 
         index = (index + 1) % N;
+
+        size_t currentIndex = totalSamples++;
+
+        while (!maxDeque.empty() && maxDeque.back().second <= lastFrame)
+            maxDeque.pop_back();
+        maxDeque.emplace_back(currentIndex, lastFrame);
+        size_t windowStart = (totalSamples > N) ? totalSamples - N : 0;
+
+        while (!maxDeque.empty() && maxDeque.front().first < windowStart)
+            maxDeque.pop_front();
     }
 
     float GetAverage() const {
         if (count == 0)
             return 0.0;
         return runningSum / count;
+    }
+
+    float GetMax() const {
+        if (maxDeque.empty())
+            return 0.0f;
+        return maxDeque.front().second;
     }
 
     float lastFrame = 0;
