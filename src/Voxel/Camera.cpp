@@ -44,8 +44,6 @@ void Camera::ProcessInput(GLFWwindow* window) {
     // Force ImGUI mouse position to be unavailable to prevent accidental clicking on other panels
     ImGuiIO& io = ImGui::GetIO();
     io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_CONTROL))
-        velocity *= 3.0f;
 
     if (InputManager::IsKeyDown(window, GLFW_KEY_W))
         position += front * velocity;
@@ -110,14 +108,30 @@ void Camera::SetFocused(bool focus) {
 }
 
 void Camera::ProcessMouseScroll(float yoffset) {
-    if (!MainUI::GetViewportPanel()->IsHovered()) {
+    Application* application = Application::GetInstance();
+    if (!application)
         return;
+
+    if (!focused)
+        return;
+
+    const float zoomFactor = 1.1f;
+    const float speedFactor = 1.1f;
+
+    if (InputManager::IsKeyDown(application->GetWindow(), GLFW_KEY_LEFT_CONTROL)) {
+
+        float factor = std::pow(zoomFactor, (float)-yoffset);
+        zoom *= factor;
+
+        zoom = std::clamp(zoom, 1.0f, 45.0f);
+
+    } else {
+
+        float factor = std::pow(speedFactor, (float)yoffset);
+        movementSpeed *= factor;
+
+        movementSpeed = std::clamp(movementSpeed, 1.0f, 200.0f);
     }
-    zoom -= (float)yoffset;
-    if (zoom < 1.0f)
-        zoom = 1.0f;
-    if (zoom > 45.0f)
-        zoom = 45.0f;
 }
 
 float Camera::GetZoom() { return zoom; }
