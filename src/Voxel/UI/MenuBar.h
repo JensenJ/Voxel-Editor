@@ -44,8 +44,14 @@ class MenuBar {
             ImGui::MenuItem("Hierarchy", (const char*)0, MainUI::GetHierarchyPanel()->GetOpen());
             ImGui::MenuItem("Component", (const char*)0, MainUI::GetComponentPanel()->GetOpen());
             ImGui::Separator();
+
             ImGui::MenuItem("Log", (const char*)0, MainUI::GetLogPanel()->GetOpen());
             ImGui::MenuItem("Profiler", (const char*)0, MainUI::GetProfilingPanel()->GetOpen());
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Reset Window Layout")) {
+                MainUI::ResetDockLayout();
+            }
             ImGui::EndMenu();
         }
     }

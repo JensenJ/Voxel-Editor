@@ -82,6 +82,8 @@ void MainUI::Initialise() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
+    //std::filesystem::path iniPath = std::filesystem::current_path() / "EditorLayout.ini";
+    io.IniFilename = "EditorLayout.ini";
     std::string fontPath =
         std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";
     io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f * uiScale);
@@ -197,6 +199,19 @@ void MainUI::BuildDefaultDockLayout(ImGuiID dockspaceID) {
 
     dockLayoutBuilt = true;
     LOG_INFO("Built default dockspace");
+}
+
+void MainUI::ResetDockLayout() {
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.IniFilename && std::filesystem::exists(io.IniFilename)) {
+        std::error_code ec;
+        std::filesystem::remove(io.IniFilename, ec);
+        if (ec) {
+            LOG_ERROR("Failed to delete ImGui ini file: {}", ec.message());
+        } else {
+            dockLayoutBuilt = false;
+        }
+    }
 }
 
 bool MainUI::ShouldBuildDefaultDockLayout() {

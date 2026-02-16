@@ -13,6 +13,8 @@ class MainUI {
     static class ComponentPanel* GetComponentPanel();
     static class ProfilingPanel* GetProfilingPanel();
 
+    static void ResetDockLayout();
+
   private:
     static void SetupFrame();
     static bool ShouldBuildDefaultDockLayout();
