@@ -121,6 +121,18 @@ class LogPanel : public UIPanel {
         ImGui::TextColored(color, "%s", text);
     }
 
+    void PanelIsClosed() override {
+        {
+            ScopedTimer timer(Profiler::ui_logging);
+        }
+        {
+            ScopedTimer timer(Profiler::ui_logging_copyBuffer);
+        }
+        {
+            ScopedTimer timer(Profiler::ui_logging_render);
+        }
+    }
+
     int LoadStyles() override {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
         return 1;

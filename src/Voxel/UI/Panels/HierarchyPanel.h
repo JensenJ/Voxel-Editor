@@ -163,6 +163,18 @@ class HierarchyPanel : public UIPanel {
         }
     }
 
+    void PanelIsClosed() override {
+        {
+            ScopedTimer timer1(Profiler::ui_hierarchy);
+        }
+        {
+            ScopedTimer timer2(Profiler::ui_hierarchy_buildList);
+        }
+        {
+            ScopedTimer timer3(Profiler::ui_hierarchy_render);
+        }
+    }
+
     int LoadStyles() override {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(4, 4));
         ImGui::PushStyleVar(ImGuiStyleVar_CellPadding, ImVec2(4, 2));

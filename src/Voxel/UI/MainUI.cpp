@@ -41,6 +41,10 @@ void MainUI::RegisterPanels() {
         profilingPanel = panel.get();
         panels.push_back(std::move(panel));
     }
+
+    for (auto& panel : panels) {
+        panelNameToPanel[panel.get()->GetPanelName()] = panel.get();
+    }
 }
 
 void MainUI::RenderUI() {
@@ -100,10 +104,46 @@ void MainUI::Initialise() {
     UIStyle::SetStyle();
     RegisterPanels();
 
+    LOG_INFO("Registered UI Panels");
+
+    RegisterSettings();
+    ImGui::LoadIniSettingsFromDisk(ImGui::GetIO().IniFilename);
+
     // Setup Platform/Renderer backends
     ImGui_ImplGlfw_InitForOpenGL(application->GetWindow(), true);
     ImGui_ImplOpenGL3_Init("#version 430");
     LOG_INFO("Initialised ImGui");
+}
+
+void MainUI::RegisterSettings() {
+    ImGuiSettingsHandler handler;
+    handler.TypeName = "EditorPanels";
+    handler.TypeHash = ImHashStr("EditorPanels");
+
+    handler.ReadOpenFn = [](ImGuiContext*, ImGuiSettingsHandler*, const char* name) -> void* {
+        return (void*)1;
+    };
+    handler.ReadLineFn = [](ImGuiContext*, ImGuiSettingsHandler*, void*, const char* line) {
+        char panelName[128] = {0};
+        int open = 0;
+        if (sscanf(line, "%127[^=]=%d", panelName, &open) == 2) {
+            auto it = panelNameToPanel.find(std::string(panelName));
+            if (it != panelNameToPanel.end()) {
+                it->second->SetOpen(open);
+            }
+        }
+    };
+
+    handler.WriteAllFn = [](ImGuiContext* ctx, ImGuiSettingsHandler* handler,
+                            ImGuiTextBuffer* buf) {
+        buf->appendf("[%s][State]\n", handler->TypeName);
+        for (auto& panel : panels) {
+            buf->appendf("%s=%d\n", panel->GetPanelName(), *panel->GetOpen());
+        }
+        buf->append("\n");
+    };
+
+    ImGui::GetCurrentContext()->SettingsHandlers.push_back(handler);
 }
 
 void MainUI::SetupFrame() {
@@ -180,3 +220,5 @@ LogPanel* MainUI::GetLogPanel() { return logPanel; }
 HierarchyPanel* MainUI::GetHierarchyPanel() { return hierarchyPanel; }
 
 ComponentPanel* MainUI::GetComponentPanel() { return componentPanel; }
+
+ProfilingPanel* MainUI::GetProfilingPanel() { return profilingPanel; }

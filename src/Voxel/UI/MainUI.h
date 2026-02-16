@@ -18,6 +18,7 @@ class MainUI {
     static bool ShouldBuildDefaultDockLayout();
     static void BuildDefaultDockLayout(ImGuiID dockspaceID);
     static void RegisterPanels();
+    static void RegisterSettings();
 
   private:
     static inline class MenuBar* menuBar = nullptr;
@@ -30,4 +31,7 @@ class MainUI {
     static inline bool dockLayoutBuilt = false;
     static inline std::vector<std::unique_ptr<UIPanel>> panels =
         std::vector<std::unique_ptr<UIPanel>>();
+
+    static inline std::unordered_map<std::string, UIPanel*> panelNameToPanel =
+        std::unordered_map<std::string, UIPanel*>();
 };

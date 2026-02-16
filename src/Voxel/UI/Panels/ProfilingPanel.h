@@ -124,6 +124,8 @@ class ProfilingPanel : public UIPanel {
 
     static inline ProfilerNode root = {"Frame", &Profiler::frame, frameChildren, 2};
 
+    void PanelIsClosed() override { ScopedTimer timer(Profiler::ui_profiling); }
+
     int LoadStyles() override { return 0; }
 
     double targetFPS = 60.0f;
