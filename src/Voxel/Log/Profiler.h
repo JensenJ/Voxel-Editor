@@ -13,30 +13,38 @@ struct FrameTimer {
     std::deque<std::pair<size_t, float>> maxDeque;
     size_t totalSamples = 0;
 
+    static std::vector<FrameTimer*>& GetRegistry() {
+        static std::vector<FrameTimer*> registry;
+        return registry;
+    }
+
   public:
     FrameTimer() {
         samples.fill(0.0f);
         count = N;
+        GetRegistry().push_back(this);
     }
 
-    void UpdateAverage() {
+    void UpdateValues() {
+        previousFrame = thisFrame;
+
         if (count < N) {
-            samples[index] = lastFrame;
-            runningSum += lastFrame;
+            samples[index] = thisFrame;
+            runningSum += thisFrame;
             ++count;
         } else {
             runningSum -= samples[index];
-            samples[index] = lastFrame;
-            runningSum += lastFrame;
+            samples[index] = thisFrame;
+            runningSum += thisFrame;
         }
 
         index = (index + 1) % N;
 
         size_t currentIndex = totalSamples++;
 
-        while (!maxDeque.empty() && maxDeque.back().second <= lastFrame)
+        while (!maxDeque.empty() && maxDeque.back().second <= thisFrame)
             maxDeque.pop_back();
-        maxDeque.emplace_back(currentIndex, lastFrame);
+        maxDeque.emplace_back(currentIndex, thisFrame);
         size_t windowStart = (totalSamples > N) ? totalSamples - N : 0;
 
         while (!maxDeque.empty() && maxDeque.front().first < windowStart)
@@ -55,7 +63,18 @@ struct FrameTimer {
         return maxDeque.front().second;
     }
 
-    float lastFrame = 0;
+    float thisFrame = 0;
+    float previousFrame = 0.0f;
+
+    static void StartFrame() {
+        for (FrameTimer* timer : GetRegistry())
+            timer->thisFrame = 0.0f;
+    }
+
+    static void EndFrame() {
+        for (FrameTimer* timer : GetRegistry())
+            timer->UpdateValues();
+    }
 
     // For ImGUI Rendering
     const float* GetBuffer() const { return samples.data(); }
@@ -71,8 +90,7 @@ class ScopedTimer {
     ~ScopedTimer() {
         auto end = std::chrono::high_resolution_clock::now();
         auto ms = std::chrono::duration<double, std::milli>(end - start).count();
-        entry.lastFrame = ms;
-        entry.UpdateAverage();
+        entry.thisFrame = ms;
     }
 
   private:
@@ -101,4 +119,7 @@ class Profiler {
     static inline FrameTimer<> system_render;
     static inline FrameTimer<> system_transform;
     static inline FrameTimer<> system_visibility;
+
+    static void StartFrame() { FrameTimer<>::StartFrame(); }
+    static void EndFrame() { FrameTimer<>::EndFrame(); }
 };

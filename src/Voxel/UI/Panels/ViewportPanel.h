@@ -25,8 +25,6 @@ class ViewportPanel : public UIPanel {
         ImGui::EndChild();
     }
 
-    void PanelIsClosed() override { ScopedTimer timer(Profiler::ui_viewport); }
-
     int LoadStyles() override {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
         return 1;

@@ -96,30 +96,34 @@ int main() {
     glfwShowWindow(application->GetWindow());
     LOG_INFO("Initialisation complete");
     while (application->ShouldStayOpen()) {
-        ScopedTimer timer(Profiler::frame);
-        application->StartFrame();
-
-        // Draw wireframe if enabled
-        if (wireframeMode) {
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        }
-
-        Camera* camera = application->GetCamera();
-        if (camera == nullptr) {
-            glfwTerminate();
-            LOG_FATAL("Failed to get camera");
-            return -4;
-        };
-        camera->ProcessInput(application->GetWindow());
-
+        Profiler::StartFrame();
         {
-            ScopedTimer timer(Profiler::system);
-            VisibilitySystem::Run();
-            TransformSystem::Run();
-            RenderSystem::Run();
-        }
+            ScopedTimer timer(Profiler::frame);
+            application->StartFrame();
 
-        application->EndFrame();
+            // Draw wireframe if enabled
+            if (wireframeMode) {
+                glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            }
+
+            Camera* camera = application->GetCamera();
+            if (camera == nullptr) {
+                glfwTerminate();
+                LOG_FATAL("Failed to get camera");
+                return -4;
+            };
+            camera->ProcessInput(application->GetWindow());
+
+            {
+                ScopedTimer timer(Profiler::system);
+                VisibilitySystem::Run();
+                TransformSystem::Run();
+                RenderSystem::Run();
+            }
+
+            application->EndFrame();
+        }
+        Profiler::EndFrame();
     }
 
     inputManager->Cleanup();

@@ -35,7 +35,7 @@ class ProfilingPanel : public UIPanel {
     void DrawProfilerNode(const ProfilerNode& node, bool isRoot = false) {
         const char* name = node.name;
         double avgTime = node.timer->GetAverage();
-        double rawTime = node.timer->lastFrame;
+        double rawTime = node.timer->previousFrame;
         double maxTime = node.timer->GetMax();
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
                                    ImGuiTreeNodeFlags_DefaultOpen |
@@ -72,7 +72,7 @@ class ProfilingPanel : public UIPanel {
         ScopedTimer timer(Profiler::ui_profiling);
 
         float frameFPS =
-            Profiler::frame.lastFrame > 0.0 ? 1000.0f / Profiler::frame.lastFrame : 0.0f;
+            Profiler::frame.previousFrame > 0.0 ? 1000.0f / Profiler::frame.previousFrame : 0.0f;
         float frameFPSAvg =
             Profiler::frame.GetAverage() > 0.0 ? 1000.0f / Profiler::frame.GetAverage() : 0.0f;
 
@@ -83,7 +83,7 @@ class ProfilingPanel : public UIPanel {
 
         ImGui::Text("System");
         ImGui::SameLine(250.0f);
-        ImGui::Text("Last ms");
+        ImGui::Text("Prev ms");
         ImGui::SameLine(400.0f);
         ImGui::Text("Avg ms");
         ImGui::SameLine(550.0f);
@@ -116,8 +116,6 @@ class ProfilingPanel : public UIPanel {
                                                   {"System", &Profiler::system, systemChildren, 3}};
 
     static inline ProfilerNode root = {"Frame", &Profiler::frame, frameChildren, 2};
-
-    void PanelIsClosed() override { ScopedTimer timer(Profiler::ui_profiling); }
 
     int LoadStyles() override { return 0; }
 

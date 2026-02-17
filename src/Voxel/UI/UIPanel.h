@@ -5,7 +5,6 @@ class UIPanel {
   public:
     void Render() {
         if (!isOpen) {
-            PanelIsClosed();
             return;
         }
 
@@ -25,7 +24,6 @@ class UIPanel {
 
   private:
     virtual void RenderInternal() = 0;
-    virtual void PanelIsClosed() = 0;
     virtual int LoadStyles() = 0;
 
   protected:

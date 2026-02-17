@@ -42,7 +42,5 @@ class ComponentPanel : public UIPanel {
         RenderComponentIfPresent<MeshComponent>(*registry, selected);
     }
 
-    void PanelIsClosed() override { ScopedTimer timer(Profiler::ui_component); }
-
     int LoadStyles() override { return 0; }
 };
