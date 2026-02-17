@@ -82,7 +82,6 @@ void MainUI::Initialise() {
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
-    //std::filesystem::path iniPath = std::filesystem::current_path() / "EditorLayout.ini";
     io.IniFilename = "EditorLayout.ini";
     std::string fontPath =
         std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";

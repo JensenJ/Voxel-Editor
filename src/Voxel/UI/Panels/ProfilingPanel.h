@@ -16,37 +16,27 @@ class ProfilingPanel : public UIPanel {
     const char* GetPanelName() override { return "Profiling"; }
 
   private:
-    ImVec4 GetColourForRatio(float ratio) {
-        if (ratio < 0.25f)
-            return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white
-        if (ratio < 0.5f)
-            return ImVec4(1.0f, 1.0f, 0.6f, 1.0f); // yellow
-        if (ratio < 0.75f)
-            return ImVec4(1.0f, 0.7f, 0.4f, 1.0f); // orange
-        return ImVec4(1.0f, 0.4f, 0.4f, 1.0f);     // red
+    ImVec4 GetColor(bool isRoot, float frameTime) {
+        float ratio = glm::clamp(frameTime / frameBudget, 0.0f, 1.0f);
+
+        if (isRoot) {
+            if (frameTime <= frameBudget)
+                return ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+            ratio = glm::clamp((frameTime - frameBudget) / frameBudget, 0.0f, 1.0f);
+        }
+
+        float r = 1.0f;
+        float g = (ratio < 0.5f) ? 1.0f : 1.0f - 2.0f * (ratio - 0.5f);
+        float b = 1.0f - ratio;
+
+        return ImVec4(r, g, b, 1.0f);
     }
 
-    ImVec4 GetColourForTotalFrame(float ratio) {
-        if (ratio < 1.02f)
-            return ImVec4(1.0f, 1.0f, 1.0f, 1.0f); // white if within budget or slightly over
-        if (ratio < 1.25f)
-            return ImVec4(1.0f, 1.0f, 0.6f, 1.0f); // yellow
-        if (ratio < 1.5f)
-            return ImVec4(1.0f, 0.7f, 0.4f, 1.0f); // orange
-        return ImVec4(1.0f, 0.4f, 0.4f, 1.0f);     // red
-    }
-
-    void DrawProfilerNode(const ProfilerNode& node, double parentTime, bool isRoot = false) {
+    void DrawProfilerNode(const ProfilerNode& node, bool isRoot = false) {
         const char* name = node.name;
         double avgTime = node.timer->GetAverage();
         double rawTime = node.timer->lastFrame;
         double maxTime = node.timer->GetMax();
-        double colourTime = std::max(maxTime, std::max(rawTime, avgTime));
-        float ratio = maxTime / parentTime;
-
-        ImVec4 col = isRoot ? GetColourForTotalFrame((float)(colourTime / frameBudget))
-                            : GetColourForRatio(ratio);
-
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_SpanAvailWidth |
                                    ImGuiTreeNodeFlags_DefaultOpen |
                                    ImGuiTreeNodeFlags_DrawLinesFull;
@@ -54,20 +44,26 @@ class ProfilingPanel : public UIPanel {
         if (node.childCount == 0)
             flags |= ImGuiTreeNodeFlags_Leaf;
 
-        ImGui::PushStyleColor(ImGuiCol_Text, col);
         bool opened = ImGui::TreeNodeEx((void*)&node, flags, "%s", name);
 
+        ImGui::PushStyleColor(ImGuiCol_Text, GetColor(isRoot, rawTime));
         ImGui::SameLine(250.0f);
         ImGui::Text("%.3f ms", rawTime);
+        ImGui::PopStyleColor();
+
+        ImGui::PushStyleColor(ImGuiCol_Text, GetColor(isRoot, avgTime));
         ImGui::SameLine(400.0f);
         ImGui::Text("%.3f ms", avgTime);
+        ImGui::PopStyleColor();
+
+        ImGui::PushStyleColor(ImGuiCol_Text, GetColor(isRoot, maxTime));
         ImGui::SameLine(550.0f);
         ImGui::Text("%.3f ms", maxTime);
-
         ImGui::PopStyleColor();
+
         if (opened) {
             for (size_t i = 0; i < node.childCount; ++i)
-                DrawProfilerNode(node.children[i], colourTime);
+                DrawProfilerNode(node.children[i]);
             ImGui::TreePop();
         }
     }
@@ -93,10 +89,7 @@ class ProfilingPanel : public UIPanel {
         ImGui::SameLine(550.0f);
         ImGui::Text("Max ms");
 
-        DrawProfilerNode(root,
-                         std::max(root.timer->GetMax(),
-                                  std::max(root.timer->lastFrame, root.timer->GetAverage())),
-                         true);
+        DrawProfilerNode(root, true);
     }
 
     static inline ProfilerNode uiLoggingChildren[] = {
@@ -128,6 +121,6 @@ class ProfilingPanel : public UIPanel {
 
     int LoadStyles() override { return 0; }
 
-    double targetFPS = 60.0f;
-    double frameBudget = 1000.0f / targetFPS;
+    float targetFPS = 60.0f;
+    float frameBudget = 1000.0f / targetFPS;
 };
