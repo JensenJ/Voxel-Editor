@@ -5,6 +5,7 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
+#include <Voxel/EditorSettings.h>
 #include <Voxel/Rendering/FrameBuffer.h>
 #include <Voxel/UI/MenuBar.h>
 #include <Voxel/UI/Panels/ComponentPanel.h>
@@ -76,8 +77,7 @@ void MainUI::Initialise() {
     if (application == nullptr) {
         return;
     }
-    // TODO: Load from settings, if it doesn't exist, try get from OS scale
-    float uiScale = 1.25f;
+    float uiScale = EditorSettings::GetFloat("Editor", "UIScale", 1.0f);
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();

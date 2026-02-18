@@ -5,6 +5,7 @@
 #include <imgui_impl_opengl3.h>
 #include <imgui_internal.h>
 #include <Voxel/Camera.h>
+#include <Voxel/EditorSettings.h>
 #include <Voxel/Rendering/FrameBuffer.h>
 #include <Voxel/Rendering/ShaderLoader.h>
 #include <Voxel/UI/MainUI.h>
@@ -19,6 +20,7 @@ Application* Application::GetInstance() {
 }
 
 bool Application::Initialise() {
+    EditorSettings::Initialise("EditorSettings.ini");
     InitialiseOpenGl();
     if (window == nullptr) {
         return false;
