@@ -20,20 +20,11 @@ class EditorSettings {
     }
 
     static void Save() {
-        std::ofstream file(s_FilePath, std::ios::out | std::ios::trunc);
-
-        if (!file.is_open())
+        if (!s_Dirty)
             return;
 
-        for (const auto& [section, keys] : s_Data) {
-            file << "[" << section << "]\n";
-
-            for (const auto& [key, value] : keys) {
-                file << key << "=" << value << "\n";
-            }
-
-            file << "\n";
-        }
+        SaveInternal();
+        s_Dirty = false;
     }
 
     static std::string GetString(const std::string& section, const std::string& key,
@@ -80,7 +71,10 @@ class EditorSettings {
 
     static void SetString(const std::string& section, const std::string& key,
                           const std::string& value) {
-        s_Data[section][key] = value;
+        if (s_Data[section][key] != value) {
+            s_Data[section][key] = value;
+            s_Dirty = true;
+        }
     }
 
     static void SetInt(const std::string& section, const std::string& key, int value) {
@@ -100,6 +94,7 @@ class EditorSettings {
         s_Data;
 
     static inline std::filesystem::path s_FilePath;
+    static inline bool s_Dirty = false;
 
     static void Trim(std::string& str) {
         auto notSpace = [](int ch) { return !std::isspace(ch); };
@@ -121,8 +116,10 @@ class EditorSettings {
 
     static void SetDefault(const std::string& section, const std::string& key,
                            const std::string& value) {
-        if (!Has(section, key))
+        if (!Has(section, key)) {
+            s_Dirty = true;
             s_Data[section][key] = value;
+        }
     }
 
     static bool
@@ -171,5 +168,45 @@ class EditorSettings {
             return false;
         }
         return true;
+    }
+
+    static void SaveInternal() {
+        std::filesystem::path tempPath = s_FilePath;
+        tempPath += ".tmp";
+
+        std::ofstream file(tempPath, std::ios::out | std::ios::trunc);
+        if (!file.is_open())
+            return;
+
+        std::vector<std::string> sections;
+        sections.reserve(s_Data.size());
+
+        for (const auto& [section, _] : s_Data)
+            sections.push_back(section);
+
+        std::sort(sections.begin(), sections.end());
+
+        for (const auto& section : sections) {
+            file << "[" << section << "]\n";
+
+            const auto& keys = s_Data[section];
+
+            std::vector<std::string> keyNames;
+            keyNames.reserve(keys.size());
+
+            for (const auto& [key, _] : keys)
+                keyNames.push_back(key);
+
+            std::sort(keyNames.begin(), keyNames.end());
+
+            for (const auto& key : keyNames) {
+                file << key << "=" << keys.at(key) << "\n";
+            }
+
+            file << "\n";
+        }
+
+        file.close();
+        std::filesystem::rename(tempPath, s_FilePath);
     }
 };
