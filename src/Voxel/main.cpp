@@ -75,8 +75,13 @@ int main() {
         return -3;
     }
 
-    inputManager->BindNewKey(GLFW_KEY_F1, GLFW_PRESS, 0, ToggleWireframeMode);
-    inputManager->BindNewKey(GLFW_KEY_ESCAPE, GLFW_PRESS, 0, CloseWindow);
+    inputManager->BindAction(InputAction::Debug_Exit, InputTrigger::Released, CloseWindow);
+    inputManager->BindAction(InputAction::Debug_Wireframe, InputTrigger::Released,
+                             ToggleWireframeMode);
+
+    // TODO: Use configurable bindings
+    inputManager->AddBinding(InputAction::Debug_Exit, InputDevice::Keyboard, GLFW_KEY_ESCAPE, 0);
+    inputManager->AddBinding(InputAction::Debug_Wireframe, InputDevice::Keyboard, GLFW_KEY_0, 0);
 
     // Create entities
     for (int x = 0; x < 8; x++) {
@@ -100,6 +105,7 @@ int main() {
         {
             ScopedTimer timer(Profiler::frame);
             application->StartFrame();
+            inputManager->Update();
 
             // Draw wireframe if enabled
             if (wireframeMode) {
@@ -126,7 +132,6 @@ int main() {
         Profiler::EndFrame();
     }
 
-    inputManager->Cleanup();
     delete inputManager;
     inputManager = nullptr;
     testModel.DeleteModel();

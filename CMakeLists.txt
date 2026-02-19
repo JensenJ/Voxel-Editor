@@ -121,7 +121,7 @@ target_sources(voxel_editor PRIVATE
     "src/Voxel/main.cpp"
     "src/Voxel/Application.cpp"
 	"src/Voxel/Camera.cpp"
-	"src/Voxel/InputManager.cpp"
+	"src/Voxel/Input/InputManager.cpp"
 	"src/Voxel/Log/Log.cpp"
 	"src/Voxel/ECS/EntityRegistry.cpp"
 	"src/Voxel/ECS/Systems/VisibilitySystem.cpp"

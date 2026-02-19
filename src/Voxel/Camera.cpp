@@ -15,6 +15,10 @@ Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
     this->movementSpeed = movementSpeed;
     this->mouseSensitivity = mouseSensitivity;
     this->zoom = zoom;
+
+    // TODO: Input bindings
+    InputManager* inputManager = InputManager::GetInstance();
+
     UpdateCameraVectors();
 }
 
@@ -23,40 +27,41 @@ void Camera::ProcessInput(GLFWwindow* window) {
     if (!application)
         return;
 
-    float velocity = movementSpeed * application->DeltaTime();
+    // float velocity = movementSpeed * application->DeltaTime();
 
-    const bool rmbDown = InputManager::IsMouseButtonDown(window, GLFW_MOUSE_BUTTON_2);
-    const bool viewportHovered = MainUI::GetViewportPanel()->IsHovered();
+    // InputManager* input = InputManager::GetInstance();
+    // const bool rmbDown = input->IsActionDown(InputAction::FocusViewport);
+    // const bool viewportHovered = MainUI::GetViewportPanel()->IsHovered();
 
-    // Start focus ONLY if RMB pressed while hovering viewport
-    if (!focused && rmbDown && viewportHovered) {
-        SetFocused(true);
-    }
+    //// Start focus ONLY if RMB pressed while hovering viewport
+    // if (!focused && rmbDown && viewportHovered) {
+    //     SetFocused(true);
+    // }
 
-    // Stop focus when RMB released
-    if (focused && !rmbDown) {
-        SetFocused(false);
-    }
+    //// Stop focus when RMB released
+    // if (focused && !rmbDown) {
+    //     SetFocused(false);
+    // }
 
-    if (!focused)
-        return;
+    // if (!focused)
+    //     return;
 
-    // Force ImGUI mouse position to be unavailable to prevent accidental clicking on other panels
-    ImGuiIO& io = ImGui::GetIO();
-    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+    //// Force ImGUI mouse position to be unavailable to prevent accidental clicking on other panels
+    // ImGuiIO& io = ImGui::GetIO();
+    // io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
 
-    if (InputManager::IsKeyDown(window, GLFW_KEY_W))
-        position += front * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_S))
-        position -= front * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_A))
-        position -= right * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_D))
-        position += right * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_LEFT_SHIFT))
-        position -= up * velocity;
-    if (InputManager::IsKeyDown(window, GLFW_KEY_SPACE))
-        position += up * velocity;
+    // if (input->IsActionDown(InputAction::MoveForward))
+    //     position += front * velocity;
+    // if (input->IsActionDown(InputAction::MoveBackward))
+    //     position -= front * velocity;
+    // if (input->IsActionDown(InputAction::MoveLeft))
+    //     position -= right * velocity;
+    // if (input->IsActionDown(InputAction::MoveRight))
+    //     position += right * velocity;
+    // if (input->IsActionDown(InputAction::MoveUp))
+    //     position += up * velocity;
+    // if (input->IsActionDown(InputAction::MoveDown))
+    //     position -= up * velocity;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
@@ -117,21 +122,22 @@ void Camera::ProcessMouseScroll(float yoffset) {
 
     const float zoomFactor = 1.1f;
     const float speedFactor = 1.1f;
+    InputManager* input = InputManager::GetInstance();
 
-    if (InputManager::IsKeyDown(application->GetWindow(), GLFW_KEY_LEFT_CONTROL)) {
+    // if (input->IsActionDown(InputAction::Camera_ModifySpeed)) {
 
-        float factor = std::pow(zoomFactor, (float)-yoffset);
-        zoom *= factor;
+    //    float factor = std::pow(zoomFactor, (float)-yoffset);
+    //    zoom *= factor;
 
-        zoom = std::clamp(zoom, 1.0f, 45.0f);
+    //    zoom = std::clamp(zoom, 1.0f, 45.0f);
 
-    } else {
+    //} else {
 
-        float factor = std::pow(speedFactor, (float)yoffset);
-        movementSpeed *= factor;
+    //    float factor = std::pow(speedFactor, (float)yoffset);
+    //    movementSpeed *= factor;
 
-        movementSpeed = std::clamp(movementSpeed, 1.0f, 200.0f);
-    }
+    //    movementSpeed = std::clamp(movementSpeed, 1.0f, 200.0f);
+    //}
 }
 
 float Camera::GetZoom() { return zoom; }
