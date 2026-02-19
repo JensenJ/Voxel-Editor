@@ -2,17 +2,21 @@
 #include <Voxel/pch.h>
 #include <Voxel/Core.h>
 
+struct SettingsAppliedEvent {};
+
 class EditorSettings {
   public:
+    static inline Subject<SettingsAppliedEvent> OnSettingsAppliedEvent;
+
     static void Initialise(const std::filesystem::path& path) {
-        s_FilePath = path;
+        filePath = path;
         std::unordered_map<std::string, std::unordered_map<std::string, std::string>> loadedData;
         bool loaded = Load(path, loadedData);
 
         if (loaded) {
-            s_Data = std::move(loadedData);
+            pendingSettings = std::move(loadedData);
         } else {
-            s_Data.clear();
+            pendingSettings.clear();
         }
 
         EnsureDefaults();
@@ -20,17 +24,19 @@ class EditorSettings {
     }
 
     static void Save() {
-        if (!s_Dirty)
+        if (!dirty)
             return;
 
         SaveInternal();
-        s_Dirty = false;
+        settings = pendingSettings;
+        dirty = false;
+        OnSettingsAppliedEvent.Notify({});
     }
 
     static std::string GetString(const std::string& section, const std::string& key,
                                  const std::string& defaultValue = "") {
-        auto sec = s_Data.find(section);
-        if (sec == s_Data.end())
+        auto sec = settings.find(section);
+        if (sec == settings.end())
             return defaultValue;
 
         auto it = sec->second.find(key);
@@ -69,11 +75,54 @@ class EditorSettings {
         return (lower == "true" || lower == "1");
     }
 
+    static std::string GetPendingString(const std::string& section, const std::string& key,
+                                        const std::string& defaultValue = "") {
+        auto sec = pendingSettings.find(section);
+        if (sec == pendingSettings.end())
+            return defaultValue;
+
+        auto it = sec->second.find(key);
+        if (it == sec->second.end())
+            return defaultValue;
+
+        return it->second;
+    }
+
+    static int GetPendingInt(const std::string& section, const std::string& key,
+                             int defaultValue = 0) {
+        try {
+            return std::stoi(GetPendingString(section, key));
+        } catch (...) {
+            return defaultValue;
+        }
+    }
+
+    static float GetPendingFloat(const std::string& section, const std::string& key,
+                                 float defaultValue = 0.0f) {
+        try {
+            return std::stof(GetPendingString(section, key));
+        } catch (...) {
+            return defaultValue;
+        }
+    }
+
+    static bool GetPendingBool(const std::string& section, const std::string& key,
+                               bool defaultValue = false) {
+        auto value = GetPendingString(section, key);
+        if (value.empty())
+            return defaultValue;
+
+        std::string lower = value;
+        std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+
+        return (lower == "true" || lower == "1");
+    }
+
     static void SetString(const std::string& section, const std::string& key,
                           const std::string& value) {
-        if (s_Data[section][key] != value) {
-            s_Data[section][key] = value;
-            s_Dirty = true;
+        if (pendingSettings[section][key] != value) {
+            pendingSettings[section][key] = value;
+            dirty = true; // TODO: Recalculate dirty from the difference between pending and current
         }
     }
 
@@ -89,12 +138,22 @@ class EditorSettings {
         SetString(section, key, value ? "true" : "false");
     }
 
+    static bool HasPendingChanges() { return dirty; }
+
+    static void ClearPendingChanges() {
+        pendingSettings = settings;
+        dirty = false;
+    }
+
   private:
     static inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
-        s_Data;
+        settings;
 
-    static inline std::filesystem::path s_FilePath;
-    static inline bool s_Dirty = false;
+    static inline std::unordered_map<std::string, std::unordered_map<std::string, std::string>>
+        pendingSettings;
+
+    static inline std::filesystem::path filePath;
+    static inline bool dirty = false;
 
     static void Trim(std::string& str) {
         auto notSpace = [](int ch) { return !std::isspace(ch); };
@@ -104,11 +163,14 @@ class EditorSettings {
         str.erase(std::find_if(str.rbegin(), str.rend(), notSpace).base(), str.end());
     }
 
-    static void EnsureDefaults() { SetDefault("Editor", "UIScale", "1.0"); }
+    static void EnsureDefaults() {
+        SetDefault("Editor", "UIScale", "1.0");
+        dirty = true;
+    }
 
     static bool Has(const std::string& section, const std::string& key) {
-        auto sec = s_Data.find(section);
-        if (sec == s_Data.end())
+        auto sec = pendingSettings.find(section);
+        if (sec == pendingSettings.end())
             return false;
 
         return sec->second.find(key) != sec->second.end();
@@ -117,16 +179,16 @@ class EditorSettings {
     static void SetDefault(const std::string& section, const std::string& key,
                            const std::string& value) {
         if (!Has(section, key)) {
-            s_Dirty = true;
-            s_Data[section][key] = value;
+            dirty = true;
+            pendingSettings[section][key] = value;
         }
     }
 
     static bool
     Load(const std::filesystem::path& path,
          std::unordered_map<std::string, std::unordered_map<std::string, std::string>>& outData) {
-        s_FilePath = path;
-        s_Data.clear();
+        filePath = path;
+        settings.clear();
 
         std::ifstream file(path);
         if (!file.is_open())
@@ -171,7 +233,7 @@ class EditorSettings {
     }
 
     static void SaveInternal() {
-        std::filesystem::path tempPath = s_FilePath;
+        std::filesystem::path tempPath = filePath;
         tempPath += ".tmp";
 
         std::ofstream file(tempPath, std::ios::out | std::ios::trunc);
@@ -179,9 +241,9 @@ class EditorSettings {
             return;
 
         std::vector<std::string> sections;
-        sections.reserve(s_Data.size());
+        sections.reserve(pendingSettings.size());
 
-        for (const auto& [section, _] : s_Data)
+        for (const auto& [section, _] : pendingSettings)
             sections.push_back(section);
 
         std::sort(sections.begin(), sections.end());
@@ -189,7 +251,7 @@ class EditorSettings {
         for (const auto& section : sections) {
             file << "[" << section << "]\n";
 
-            const auto& keys = s_Data[section];
+            const auto& keys = pendingSettings[section];
 
             std::vector<std::string> keyNames;
             keyNames.reserve(keys.size());
@@ -207,6 +269,6 @@ class EditorSettings {
         }
 
         file.close();
-        std::filesystem::rename(tempPath, s_FilePath);
+        std::filesystem::rename(tempPath, filePath);
     }
 };

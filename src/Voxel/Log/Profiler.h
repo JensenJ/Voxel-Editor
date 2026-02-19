@@ -104,6 +104,7 @@ class Profiler {
 
     static inline FrameTimer<> ui;
     static inline FrameTimer<> ui_profiling;
+    static inline FrameTimer<> ui_properties;
     static inline FrameTimer<> ui_component;
     static inline FrameTimer<> ui_viewport;
 

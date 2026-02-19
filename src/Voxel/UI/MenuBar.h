@@ -5,6 +5,7 @@
 #include <Voxel/UI/Panels/HierarchyPanel.h>
 #include <Voxel/UI/Panels/LogPanel.h>
 #include <Voxel/UI/Panels/ProfilingPanel.h>
+#include <Voxel/UI/Panels/PropertiesPanel.h>
 #include <Voxel/UI/Panels/ViewportPanel.h>
 
 class MenuBar {
@@ -47,6 +48,7 @@ class MenuBar {
 
             ImGui::MenuItem("Log", (const char*)0, MainUI::GetLogPanel()->GetOpen());
             ImGui::MenuItem("Profiler", (const char*)0, MainUI::GetProfilingPanel()->GetOpen());
+            ImGui::MenuItem("Properties", (const char*)0, MainUI::GetPropertiesPanel()->GetOpen());
             ImGui::Separator();
 
             if (ImGui::MenuItem("Reset Window Layout")) {

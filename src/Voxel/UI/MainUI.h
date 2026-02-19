@@ -12,8 +12,10 @@ class MainUI {
     static class HierarchyPanel* GetHierarchyPanel();
     static class ComponentPanel* GetComponentPanel();
     static class ProfilingPanel* GetProfilingPanel();
+    static class PropertiesPanel* GetPropertiesPanel();
 
     static void ResetDockLayout();
+    static void UpdateUIScale();
 
   private:
     static void SetupFrame();
@@ -29,10 +31,13 @@ class MainUI {
     static inline class HierarchyPanel* hierarchyPanel = nullptr;
     static inline class ComponentPanel* componentPanel = nullptr;
     static inline class ProfilingPanel* profilingPanel = nullptr;
+    static inline class PropertiesPanel* propertiesPanel = nullptr;
 
     static inline bool dockLayoutBuilt = false;
     static inline std::vector<std::unique_ptr<UIPanel>> panels =
         std::vector<std::unique_ptr<UIPanel>>();
+
+    static inline ImGuiStyle baseStyle;
 
     static inline std::unordered_map<std::string, UIPanel*> panelNameToPanel =
         std::unordered_map<std::string, UIPanel*>();

@@ -12,6 +12,7 @@
 #include <Voxel/UI/Panels/HierarchyPanel.h>
 #include <Voxel/UI/Panels/LogPanel.h>
 #include <Voxel/UI/Panels/ProfilingPanel.h>
+#include <Voxel/UI/Panels/PropertiesPanel.h>
 #include <Voxel/UI/Panels/ViewportPanel.h>
 #include <Voxel/UI/UIPanel.h>
 #include <Voxel/UI/UIStyle.h>
@@ -40,6 +41,11 @@ void MainUI::RegisterPanels() {
     {
         auto panel = std::make_unique<ProfilingPanel>();
         profilingPanel = panel.get();
+        panels.push_back(std::move(panel));
+    }
+    {
+        auto panel = std::make_unique<PropertiesPanel>();
+        propertiesPanel = panel.get();
         panels.push_back(std::move(panel));
     }
 
@@ -81,18 +87,19 @@ void MainUI::Initialise() {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
-    (void)io;
     io.IniFilename = "EditorLayout.ini";
-    std::string fontPath =
-        std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";
-    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f * uiScale);
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
     io.ConfigDragClickToInputText = true; // Single click to modify slider value directly
-
     ImGui::StyleColorsDark();
-    ImGui::GetStyle().ScaleAllSizes(uiScale);
+    std::string fontPath =
+        std::filesystem::current_path().string() + "\\resources\\fonts\\Roboto-Regular.ttf";
+    io.Fonts->AddFontFromFileTTF(fontPath.c_str(), 18.0f);
+
+    UpdateUIScale();
+    EditorSettings::OnSettingsAppliedEvent.AddObserver(
+        [](const SettingsAppliedEvent& event) { UpdateUIScale(); });
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look
     // identical to regular ones.
@@ -103,6 +110,7 @@ void MainUI::Initialise() {
     }
 
     UIStyle::SetStyle();
+    baseStyle = ImGui::GetStyle();
     RegisterPanels();
 
     LOG_INFO("Registered UI Panels");
@@ -213,6 +221,19 @@ void MainUI::ResetDockLayout() {
     }
 }
 
+void MainUI::UpdateUIScale() {
+    float uiScale = EditorSettings::GetFloat("Editor", "UIScale", 1.0f);
+    ImGuiIO& io = ImGui::GetIO();
+
+    // Reset style back to original
+    ImGuiStyle& style = ImGui::GetStyle();
+    style = baseStyle;
+
+    // Apply fresh scale
+    style.ScaleAllSizes(uiScale);
+    io.FontGlobalScale = uiScale;
+}
+
 bool MainUI::ShouldBuildDefaultDockLayout() {
     const ImGuiIO& io = ImGui::GetIO();
 
@@ -236,3 +257,5 @@ HierarchyPanel* MainUI::GetHierarchyPanel() { return hierarchyPanel; }
 ComponentPanel* MainUI::GetComponentPanel() { return componentPanel; }
 
 ProfilingPanel* MainUI::GetProfilingPanel() { return profilingPanel; }
+
+PropertiesPanel* MainUI::GetPropertiesPanel() { return propertiesPanel; }

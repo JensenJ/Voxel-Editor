@@ -105,14 +105,15 @@ class ProfilingPanel : public UIPanel {
         {"Components", &Profiler::ui_component, nullptr, 0},
         {"Hierarchy", &Profiler::ui_hierarchy, uiHierarchyChildren, 2},
         {"Logging", &Profiler::ui_logging, uiLoggingChildren, 2},
-        {"Profiling", &Profiler::ui_profiling, nullptr, 0}};
+        {"Profiling", &Profiler::ui_profiling, nullptr, 0},
+        {"Properties", &Profiler::ui_properties, nullptr, 0}};
 
     static inline ProfilerNode systemChildren[] = {
         {"Render", &Profiler::system_render, nullptr, 0},
         {"Transform", &Profiler::system_transform, nullptr, 0},
         {"Visibility", &Profiler::system_visibility, nullptr, 0}};
 
-    static inline ProfilerNode frameChildren[] = {{"UI", &Profiler::ui, uiChildren, 5},
+    static inline ProfilerNode frameChildren[] = {{"UI", &Profiler::ui, uiChildren, 6},
                                                   {"System", &Profiler::system, systemChildren, 3}};
 
     static inline ProfilerNode root = {"Frame", &Profiler::frame, frameChildren, 2};
