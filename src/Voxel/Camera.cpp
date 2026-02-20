@@ -75,7 +75,23 @@ Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
     UpdateCameraVectors();
 }
 
-void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
+void Camera::ProcessMouseMovement(float xposIn, float yposIn) {
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (!mouseInitialized) {
+        lastX = xpos;
+        lastY = ypos;
+        mouseInitialized = true;
+        return;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+
+    lastX = xpos;
+    lastY = ypos;
+
     if (!focused)
         return;
 
@@ -85,9 +101,7 @@ void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constr
     yaw += xoffset;
     pitch += yoffset;
 
-    if (constrainPitch) {
-        pitch = glm::clamp(pitch, -89.0f, 89.0f);
-    }
+    pitch = glm::clamp(pitch, -89.0f, 89.0f);
 
     UpdateCameraVectors();
 }
@@ -119,6 +133,7 @@ void Camera::SetFocused(bool focus) {
 
     if (focus) {
         glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        mouseInitialized = false;
     } else {
         glfwSetInputMode(application->GetWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL);
     }

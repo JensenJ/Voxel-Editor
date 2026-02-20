@@ -239,31 +239,13 @@ void InputManager::RawScrollInput(GLFWwindow* window, double xoffset, double yof
 }
 
 // For mouse position, for now we just forward to the camera, as axis based input is kind of
-// complicated
+// complicated, and this is probably the only place this will be used.
 void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposIn) {
-    static bool firstMouse = true;
-    static float lastX = 0.0f, lastY = 0.0f;
-
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse) {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go bottom -> top
-
-    lastX = xpos;
-    lastY = ypos;
-
-    // Forward to camera if needed
     Application* app = Application::GetInstance();
-    if (app) {
-        Camera* cam = app->GetCamera();
-        if (cam)
-            cam->ProcessMouseMovement(xoffset, yoffset);
-    }
+    if (!app)
+        return;
+    Camera* cam = app->GetCamera();
+    if (!cam)
+        return;
+    cam->ProcessMouseMovement(xposIn, yposIn);
 }

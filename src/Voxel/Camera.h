@@ -26,6 +26,11 @@ class Camera {
     float zoom;
     bool focused = false;
 
+    // mouse attributes
+    float lastX = 0.0f;
+    float lastY = 0.0f;
+    bool mouseInitialized = false;
+
   public:
     // constructor with vectors
     Camera(glm::vec3 position = POSITION, float yaw = YAW, float pitch = PITCH,
@@ -37,7 +42,7 @@ class Camera {
 
     // processes input received from a mouse input system. Expects the offset value in both the x
     // and y direction.
-    void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
+    void ProcessMouseMovement(float xoffset, float yoffset);
 
     float GetZoom();
 
