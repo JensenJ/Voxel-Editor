@@ -1,13 +1,16 @@
 #define INPUT_ACTIONS(X)                                                                           \
     X(None)                                                                                        \
-    X(Camera_MoveForward)                                                                          \
-    X(Camera_MoveBackward)                                                                         \
-    X(Camera_MoveLeft)                                                                             \
-    X(Camera_MoveRight)                                                                            \
-    X(Camera_MoveUp)                                                                               \
-    X(Camera_MoveDown)                                                                             \
-    X(Camera_FocusViewport)                                                                        \
-    X(Camera_ModifySpeed)                                                                          \
+    X(FreeCam_MoveForward)                                                                         \
+    X(FreeCam_MoveBackward)                                                                        \
+    X(FreeCam_MoveLeft)                                                                            \
+    X(FreeCam_MoveRight)                                                                           \
+    X(FreeCam_MoveUp)                                                                              \
+    X(FreeCam_MoveDown)                                                                            \
+    X(FreeCam_FocusViewport)                                                                       \
+    X(FreeCam_IncreaseSpeed)                                                                       \
+    X(FreeCam_DecreaseSpeed)                                                                       \
+    X(FreeCam_ZoomIn)                                                                              \
+    X(FreeCam_ZoomOut)                                                                             \
     X(Debug_Exit)                                                                                  \
     X(Debug_Wireframe)
 

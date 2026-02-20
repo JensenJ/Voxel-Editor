@@ -24,7 +24,7 @@ class Camera {
     float movementSpeed;
     float mouseSensitivity;
     float zoom;
-    bool focused;
+    bool focused = false;
 
   public:
     // constructor with vectors
@@ -35,15 +35,9 @@ class Camera {
     // returns the view matrix calculated using Euler Angles and the LookAt Matrix
     glm::mat4 GetViewMatrix();
 
-    void ProcessInput(struct GLFWwindow* window);
-
     // processes input received from a mouse input system. Expects the offset value in both the x
     // and y direction.
     void ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch = true);
-
-    // processes input received from a mouse scroll-wheel event. Only requires input on the vertical
-    // wheel-axis
-    void ProcessMouseScroll(float yoffset);
 
     float GetZoom();
 
@@ -51,4 +45,17 @@ class Camera {
     // calculates the front vector from the Camera's (updated) Euler Angles
     void UpdateCameraVectors();
     void SetFocused(bool focus);
+
+    float GetVelocity();
+    void WhileFocused();
+    void MoveForward();
+    void MoveBackward();
+    void MoveLeft();
+    void MoveRight();
+    void MoveUp();
+    void MoveDown();
+    void ZoomIn();
+    void ZoomOut();
+    void IncreaseSpeed();
+    void DecreaseSpeed();
 };

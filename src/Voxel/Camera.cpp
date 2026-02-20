@@ -16,52 +16,63 @@ Camera::Camera(glm::vec3 position, float yaw, float pitch, float movementSpeed,
     this->mouseSensitivity = mouseSensitivity;
     this->zoom = zoom;
 
-    // TODO: Input bindings
     InputManager* inputManager = InputManager::GetInstance();
 
+    // Create action bindings
+    inputManager->BindAction(InputAction::FreeCam_FocusViewport, InputTrigger::Pressed,
+                             std::bind(&Camera::SetFocused, this, true));
+    inputManager->BindAction(InputAction::FreeCam_FocusViewport, InputTrigger::Released,
+                             std::bind(&Camera::SetFocused, this, false));
+    inputManager->BindAction(InputAction::FreeCam_FocusViewport, InputTrigger::Held,
+                             std::bind(&Camera::WhileFocused, this));
+
+    inputManager->BindAction(InputAction::FreeCam_MoveForward, InputTrigger::Held,
+                             std::bind(&Camera::MoveForward, this));
+    inputManager->BindAction(InputAction::FreeCam_MoveBackward, InputTrigger::Held,
+                             std::bind(&Camera::MoveBackward, this));
+    inputManager->BindAction(InputAction::FreeCam_MoveLeft, InputTrigger::Held,
+                             std::bind(&Camera::MoveLeft, this));
+    inputManager->BindAction(InputAction::FreeCam_MoveRight, InputTrigger::Held,
+                             std::bind(&Camera::MoveRight, this));
+    inputManager->BindAction(InputAction::FreeCam_MoveUp, InputTrigger::Held,
+                             std::bind(&Camera::MoveUp, this));
+    inputManager->BindAction(InputAction::FreeCam_MoveDown, InputTrigger::Held,
+                             std::bind(&Camera::MoveDown, this));
+
+    inputManager->BindAction(InputAction::FreeCam_ZoomIn, InputTrigger::Pressed,
+                             std::bind(&Camera::ZoomIn, this));
+    inputManager->BindAction(InputAction::FreeCam_ZoomOut, InputTrigger::Pressed,
+                             std::bind(&Camera::ZoomOut, this));
+
+    inputManager->BindAction(InputAction::FreeCam_IncreaseSpeed, InputTrigger::Pressed,
+                             std::bind(&Camera::IncreaseSpeed, this));
+    inputManager->BindAction(InputAction::FreeCam_DecreaseSpeed, InputTrigger::Pressed,
+                             std::bind(&Camera::DecreaseSpeed, this));
+
+    // TODO: TEMPORARY (until configurable keybinds are implemented) - Create key bindings
+    inputManager->AddBinding(InputAction::FreeCam_FocusViewport, InputDevice::MouseButton,
+                             GLFW_MOUSE_BUTTON_2, 0);
+    inputManager->AddBinding(InputAction::FreeCam_MoveForward, InputDevice::Keyboard, GLFW_KEY_W,
+                             0);
+    inputManager->AddBinding(InputAction::FreeCam_MoveBackward, InputDevice::Keyboard, GLFW_KEY_S,
+                             0);
+    inputManager->AddBinding(InputAction::FreeCam_MoveLeft, InputDevice::Keyboard, GLFW_KEY_A, 0);
+    inputManager->AddBinding(InputAction::FreeCam_MoveRight, InputDevice::Keyboard, GLFW_KEY_D, 0);
+    inputManager->AddBinding(InputAction::FreeCam_MoveUp, InputDevice::Keyboard, GLFW_KEY_SPACE, 0);
+    inputManager->AddBinding(InputAction::FreeCam_MoveDown, InputDevice::Keyboard,
+                             GLFW_KEY_LEFT_SHIFT, 0);
+
+    inputManager->AddBinding(InputAction::FreeCam_ZoomIn, InputDevice::MouseScroll, SCROLL_UP,
+                             GLFW_MOD_CONTROL);
+    inputManager->AddBinding(InputAction::FreeCam_ZoomOut, InputDevice::MouseScroll, SCROLL_DOWN,
+                             GLFW_MOD_CONTROL);
+
+    inputManager->AddBinding(InputAction::FreeCam_IncreaseSpeed, InputDevice::MouseScroll,
+                             SCROLL_UP, 0);
+    inputManager->AddBinding(InputAction::FreeCam_DecreaseSpeed, InputDevice::MouseScroll,
+                             SCROLL_DOWN, 0);
+
     UpdateCameraVectors();
-}
-
-void Camera::ProcessInput(GLFWwindow* window) {
-    Application* application = Application::GetInstance();
-    if (!application)
-        return;
-
-    // float velocity = movementSpeed * application->DeltaTime();
-
-    // InputManager* input = InputManager::GetInstance();
-    // const bool rmbDown = input->IsActionDown(InputAction::FocusViewport);
-    // const bool viewportHovered = MainUI::GetViewportPanel()->IsHovered();
-
-    //// Start focus ONLY if RMB pressed while hovering viewport
-    // if (!focused && rmbDown && viewportHovered) {
-    //     SetFocused(true);
-    // }
-
-    //// Stop focus when RMB released
-    // if (focused && !rmbDown) {
-    //     SetFocused(false);
-    // }
-
-    // if (!focused)
-    //     return;
-
-    //// Force ImGUI mouse position to be unavailable to prevent accidental clicking on other panels
-    // ImGuiIO& io = ImGui::GetIO();
-    // io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
-
-    // if (input->IsActionDown(InputAction::MoveForward))
-    //     position += front * velocity;
-    // if (input->IsActionDown(InputAction::MoveBackward))
-    //     position -= front * velocity;
-    // if (input->IsActionDown(InputAction::MoveLeft))
-    //     position -= right * velocity;
-    // if (input->IsActionDown(InputAction::MoveRight))
-    //     position += right * velocity;
-    // if (input->IsActionDown(InputAction::MoveUp))
-    //     position += up * velocity;
-    // if (input->IsActionDown(InputAction::MoveDown))
-    //     position -= up * velocity;
 }
 
 void Camera::ProcessMouseMovement(float xoffset, float yoffset, GLboolean constrainPitch) {
@@ -88,15 +99,18 @@ void Camera::UpdateCameraVectors() {
     localFront.y = sin(glm::radians(pitch));
     localFront.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
     front = glm::normalize(localFront);
-    // also re-calculate the Right and Up vector
-    right = glm::normalize(glm::cross(
-        front, worldUp)); // normalize the vectors, because their length gets closer to 0 the more
-                          // you look up or down which results in slower movement.
-    up = glm::normalize(glm::cross(right, front));
+    // also re-calculate the right vector
+    right = glm::normalize(glm::cross(front, worldUp));
+    // up = glm::normalize(glm::cross(right, front)); Keep up and down global, TODO: this may be
+    // worth making a setting
 }
 
 void Camera::SetFocused(bool focus) {
     if (focus == focused)
+        return;
+
+    bool viewportHovered = MainUI::GetViewportPanel()->IsHovered();
+    if (focus && !viewportHovered)
         return;
 
     Application* application = Application::GetInstance();
@@ -112,32 +126,80 @@ void Camera::SetFocused(bool focus) {
     focused = focus;
 }
 
-void Camera::ProcessMouseScroll(float yoffset) {
+float Camera::GetVelocity() {
     Application* application = Application::GetInstance();
     if (!application)
-        return;
+        return movementSpeed;
+    return movementSpeed * application->DeltaTime();
+}
 
+void Camera::WhileFocused() {
+    ImGuiIO& io = ImGui::GetIO();
+    io.MousePos = ImVec2(-FLT_MAX, -FLT_MAX);
+}
+
+void Camera::MoveForward() {
     if (!focused)
         return;
+    position += front * GetVelocity();
+}
 
-    const float zoomFactor = 1.1f;
-    const float speedFactor = 1.1f;
-    InputManager* input = InputManager::GetInstance();
+void Camera::MoveBackward() {
+    if (!focused)
+        return;
+    position -= front * GetVelocity();
+}
 
-    // if (input->IsActionDown(InputAction::Camera_ModifySpeed)) {
+void Camera::MoveLeft() {
+    if (!focused)
+        return;
+    position -= right * GetVelocity();
+}
 
-    //    float factor = std::pow(zoomFactor, (float)-yoffset);
-    //    zoom *= factor;
+void Camera::MoveRight() {
+    if (!focused)
+        return;
+    position += right * GetVelocity();
+}
 
-    //    zoom = std::clamp(zoom, 1.0f, 45.0f);
+void Camera::MoveUp() {
+    if (!focused)
+        return;
+    position += up * GetVelocity();
+}
 
-    //} else {
+void Camera::MoveDown() {
+    if (!focused)
+        return;
+    position -= up * GetVelocity();
+}
 
-    //    float factor = std::pow(speedFactor, (float)yoffset);
-    //    movementSpeed *= factor;
+void Camera::ZoomIn() {
+    if (!MainUI::GetViewportPanel()->IsHovered() || focused)
+        return;
+    float factor = std::pow(1.1, (float)-1);
+    zoom = std::clamp(zoom * factor, 1.0f, 45.0f);
+}
 
-    //    movementSpeed = std::clamp(movementSpeed, 1.0f, 200.0f);
-    //}
+void Camera::ZoomOut() {
+    if (!MainUI::GetViewportPanel()->IsHovered() || focused)
+        return;
+    float factor = std::pow(1.1, (float)1);
+    zoom = std::clamp(zoom * factor, 1.0f, 45.0f);
+}
+
+void Camera::IncreaseSpeed() {
+    if (!focused)
+        return;
+    float factor = std::pow(1.1, (float)1);
+    movementSpeed = std::clamp(movementSpeed * factor, 1.0f, 200.0f);
+}
+
+void Camera::DecreaseSpeed() {
+    if (!focused)
+        return;
+    float factor = std::pow(1.1, (float)-1);
+    movementSpeed = std::clamp(movementSpeed * factor, 1.0f, 200.0f);
 }
 
 float Camera::GetZoom() { return zoom; }

@@ -118,7 +118,6 @@ int main() {
                 LOG_FATAL("Failed to get camera");
                 return -4;
             };
-            camera->ProcessInput(application->GetWindow());
 
             {
                 ScopedTimer timer(Profiler::system);

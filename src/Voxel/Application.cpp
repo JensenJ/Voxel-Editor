@@ -92,6 +92,7 @@ void Application::InitialiseOpenGl() {
     glfwSetCursorPosCallback(window, InputManager::RawMouseInput);
     glfwSetScrollCallback(window, InputManager::RawScrollInput);
     glfwSetKeyCallback(window, InputManager::RawKeyInput);
+    glfwSetMouseButtonCallback(window, InputManager::RawMouseButtonInput);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
     this->sceneViewportWidth = fbWidth;

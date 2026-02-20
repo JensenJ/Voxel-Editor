@@ -37,11 +37,13 @@ bool InputManager::AddBinding(InputAction action, InputDevice device, int key, i
     chord.mods = mods;
 
     // Prevent conflicts
-    if (lookup.find(chord) != lookup.end())
+    if (FindMatchingAction(chord) != InputAction::None) {
+        LOG_WARN("Key conflict found, unable to bind key {} with mods {} to action {}.", key, mods,
+                 ActionToString(action));
         return false;
+    }
 
     actionBindings[action].push_back(chord);
-    RebuildLookup();
     SaveBindings();
     return true;
 }
@@ -63,7 +65,6 @@ bool InputManager::RemoveBinding(InputAction action, InputDevice device, int key
     else
         return false;
 
-    RebuildLookup();
     SaveBindings();
     return true;
 }
@@ -75,12 +76,21 @@ void InputManager::Update() {
     }
 }
 
-void InputManager::RebuildLookup() {
-    lookup.clear();
-    for (auto& [action, chords] : actionBindings) {
-        for (auto& chord : chords)
-            lookup[chord] = action;
+InputAction InputManager::FindMatchingAction(const KeyChord& current) {
+    for (const auto& [action, chords] : actionBindings) {
+        for (const KeyChord& binding : chords) {
+            if (binding.device != current.device)
+                continue;
+
+            if (binding.key != current.key)
+                continue;
+
+            if ((binding.mods & current.mods) == binding.mods)
+                return action;
+        }
     }
+
+    return InputAction::None;
 }
 
 void InputManager::TriggerAction(InputAction action, InputTrigger trigger) {
@@ -119,27 +129,25 @@ void InputManager::OnKey(int key, int glfwAction, int mods) {
     chord.key = key;
     chord.mods = mods;
 
-    auto it = lookup.find(chord);
-    if (it == lookup.end())
+    InputAction inputAction = FindMatchingAction(chord);
+    if (inputAction == InputAction::None)
         return;
-
-    InputAction action = it->second;
 
     if (glfwAction == GLFW_PRESS) {
         // Prevent duplicate press if already held
-        if (!actionStates[action]) {
-            actionStates[action] = true;
-            TriggerAction(action, InputTrigger::Pressed);
+        if (!actionStates[inputAction]) {
+            actionStates[inputAction] = true;
+            TriggerAction(inputAction, InputTrigger::Pressed);
         }
     } else if (glfwAction == GLFW_RELEASE) {
-        actionStates[action] = false;
-        TriggerAction(action, InputTrigger::Released);
+        actionStates[inputAction] = false;
+        TriggerAction(inputAction, InputTrigger::Released);
     }
 }
 
-void InputManager::OnMouseButton(int button, int action, int mods) {
+void InputManager::OnMouseButton(int button, int glfwAction, int mods) {
     // Ignore repeat events — held is handled in Update()
-    if (action == GLFW_REPEAT)
+    if (glfwAction == GLFW_REPEAT)
         return;
 
     KeyChord chord{};
@@ -147,37 +155,91 @@ void InputManager::OnMouseButton(int button, int action, int mods) {
     chord.key = button;
     chord.mods = mods;
 
-    auto it = lookup.find(chord);
-    if (it == lookup.end())
+    InputAction inputAction = FindMatchingAction(chord);
+    if (inputAction == InputAction::None)
         return;
 
-    InputAction inputAction = it->second;
-
-    if (action == GLFW_PRESS) {
+    if (glfwAction == GLFW_PRESS) {
         // Prevent duplicate press if already held
         if (!actionStates[inputAction]) {
             actionStates[inputAction] = true;
             TriggerAction(inputAction, InputTrigger::Pressed);
         }
-    } else if (action == GLFW_RELEASE) {
+    } else if (glfwAction == GLFW_RELEASE) {
         actionStates[inputAction] = false;
         TriggerAction(inputAction, InputTrigger::Released);
     }
+}
+
+void InputManager::OnScroll(int xOffset, int yOffset, int mods) {
+    int direction = 0;
+
+    if (yOffset > 0.0)
+        direction = SCROLL_UP;
+    else if (yOffset < 0.0)
+        direction = SCROLL_DOWN;
+
+    if (direction == 0)
+        return;
+
+    KeyChord chord{};
+    chord.device = InputDevice::MouseScroll;
+    chord.key = direction;
+    chord.mods = mods;
+
+    InputAction inputAction = FindMatchingAction(chord);
+    if (inputAction == InputAction::None)
+        return;
+
+    // Discrete mouse scroll is a bit weird, ideally we should only use pressed, but I've put the
+    // others triggers also just to prevent confusion when we setup inputs and we accidentally
+    // select the wrong trigger, causing it to silently fail
+    TriggerAction(inputAction, InputTrigger::Pressed);
+    TriggerAction(inputAction, InputTrigger::Released);
+    TriggerAction(inputAction, InputTrigger::Held);
 }
 
 void InputManager::SaveBindings() {}
 
 void InputManager::LoadBindings() {}
 
+int InputManager::NormaliseMods(int mods) {
+    return mods & (GLFW_MOD_SHIFT | GLFW_MOD_CONTROL | GLFW_MOD_ALT | GLFW_MOD_SUPER);
+}
+
 void InputManager::RawKeyInput(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    InputManager::GetInstance()->OnKey(key, action, mods);
+    InputManager::GetInstance()->OnKey(key, action, NormaliseMods(mods));
 }
 
 void InputManager::RawMouseButtonInput(GLFWwindow* window, int button, int action, int mods) {
-    InputManager::GetInstance()->OnMouseButton(button, action, mods);
+    InputManager::GetInstance()->OnMouseButton(button, action, NormaliseMods(mods));
 }
 
-// For mouse position and scroll, we may just forward to the camera or your existing system
+void InputManager::RawScrollInput(GLFWwindow* window, double xoffset, double yoffset) {
+    int mods = 0;
+
+    // Manually collect modifier keys
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS)
+        mods |= GLFW_MOD_SHIFT;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS)
+        mods |= GLFW_MOD_CONTROL;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_RIGHT_ALT) == GLFW_PRESS)
+        mods |= GLFW_MOD_ALT;
+
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_RIGHT_SUPER) == GLFW_PRESS)
+        mods |= GLFW_MOD_SUPER;
+
+    InputManager::GetInstance()->OnScroll(xoffset, yoffset, NormaliseMods(mods));
+}
+
+// For mouse position, for now we just forward to the camera, as axis based input is kind of
+// complicated
 void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposIn) {
     static bool firstMouse = true;
     static float lastX = 0.0f, lastY = 0.0f;
@@ -203,14 +265,5 @@ void InputManager::RawMouseInput(GLFWwindow* window, double xposIn, double yposI
         Camera* cam = app->GetCamera();
         if (cam)
             cam->ProcessMouseMovement(xoffset, yoffset);
-    }
-}
-
-void InputManager::RawScrollInput(GLFWwindow* window, double xoffset, double yoffset) {
-    Application* app = Application::GetInstance();
-    if (app) {
-        Camera* cam = app->GetCamera();
-        if (cam)
-            cam->ProcessMouseScroll(static_cast<float>(yoffset));
     }
 }
