@@ -12,13 +12,13 @@
 #include <Voxel/Rendering/RawModel.h>
 #include <Voxel/Rendering/ShaderLoader.h>
 
-bool mouseLocked = true;
 bool wireframeMode = false;
 
 void ToggleWireframeMode();
 void CloseWindow();
 
 int main() {
+    auto startupTimeStart = std::chrono::high_resolution_clock::now();
     Log::Init();
     Application* application = Application::GetInstance();
     if (!application->Initialise()) {
@@ -81,7 +81,7 @@ int main() {
 
     // TODO: Use configurable bindings
     inputManager->AddBinding(InputAction::Debug_Exit, InputDevice::Keyboard, GLFW_KEY_ESCAPE, 0);
-    inputManager->AddBinding(InputAction::Debug_Wireframe, InputDevice::Keyboard, GLFW_KEY_0, 0);
+    inputManager->AddBinding(InputAction::Debug_Wireframe, InputDevice::Keyboard, GLFW_KEY_F1, 0);
 
     // Create entities
     for (int x = 0; x < 8; x++) {
@@ -99,7 +99,9 @@ int main() {
     }
 
     glfwShowWindow(application->GetWindow());
-    LOG_INFO("Initialisation complete");
+    auto startupTimeEnd = std::chrono::high_resolution_clock::now();
+    auto ms = std::chrono::duration<double, std::milli>(startupTimeEnd - startupTimeStart).count();
+    LOG_INFO("Initialisation complete in {}ms", ms);
     while (application->ShouldStayOpen()) {
         Profiler::StartFrame();
         {
